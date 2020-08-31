@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableJpaRepositories(basePackages = "com.newisland.user.model.repository")
-@PropertySource("classpath:config.properties")
+@PropertySource("classpath:test.properties")
 @EnableTransactionManagement
 public class H2JpaConfig {
 }
