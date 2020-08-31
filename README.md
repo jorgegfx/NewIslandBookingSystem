@@ -1,2 +1,5 @@
-# NewIslandBookingSystem
-New Island Booking System
+# New Island Booking System
+
+System Design
+
+1) Component Diagram
