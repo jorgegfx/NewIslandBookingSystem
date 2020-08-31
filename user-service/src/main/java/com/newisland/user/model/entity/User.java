@@ -27,7 +27,7 @@ public class User {
     private String name;
 
     @NotEmpty(message = "Email is required!")
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 100, unique = true)
     private String email;
 
     @Basic
