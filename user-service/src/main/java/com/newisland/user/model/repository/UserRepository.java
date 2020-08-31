@@ -1,6 +1,6 @@
-package com.newisland.user.repository;
+package com.newisland.user.model.repository;
 
-import com.newisland.user.entity.User;
+import com.newisland.user.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,6 +1,6 @@
-package com.newisland.user.repository;
+package com.newisland.user.model.repository;
 
-import com.newisland.user.entity.User;
+import com.newisland.user.model.entity.User;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +21,7 @@ class UserRepositoryTest {
 
     @Test
     public void findSavedUserById() {
-        User user = new User();
-        user.setName("Test");
-        user.setEmail("test@test.com");
-        user.setCreatedOn(Instant.now());
+        User user = User.builder().name("Test").email("test@test.com").build();
         User expectedUser = userRepository.save(user);
         assertThat(userRepository.findById(user.getId())).hasValue(expectedUser);
     }

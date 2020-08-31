@@ -1,4 +1,4 @@
-package com.newisland.user.entity;
+package com.newisland.user.model.entity;
 
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -11,8 +11,8 @@ import java.util.UUID;
 @Entity
 @Data
 @NoArgsConstructor
-@Getter
-@Setter
+@AllArgsConstructor
+@Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
     @Id
@@ -35,7 +35,6 @@ public class User {
     private Instant createdOn;
 
     @Basic
-    @Column(nullable = true)
     private Instant updateOn;
 
 }

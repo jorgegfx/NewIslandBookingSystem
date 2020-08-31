@@ -1,11 +1,12 @@
 package com.newisland.user.service;
 
-import com.newisland.user.entity.User;
-import com.newisland.user.repository.UserRepository;
+import com.newisland.user.model.entity.User;
+import com.newisland.user.model.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,7 +23,9 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public void save(User user) {
+    public User save(User user) {
+        user.setCreatedOn(Instant.now());
         userRepository.save(user);
+        return user;
     }
 }
