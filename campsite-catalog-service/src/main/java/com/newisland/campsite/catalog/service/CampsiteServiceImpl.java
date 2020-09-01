@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,6 +34,12 @@ public class CampsiteServiceImpl implements CampsiteService{
 
     @Override
     public Campsite save(Campsite campsite) {
+        campsite.setCreatedOn(Instant.now());
         return campsiteRepository.save(campsite);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        this.findById(id).ifPresent(campsiteRepository::delete);
     }
 }

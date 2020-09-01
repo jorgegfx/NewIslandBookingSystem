@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface UserService {
     Optional<User> findById(UUID id);
     User save(User user);
+    void delete(UUID id);
 }

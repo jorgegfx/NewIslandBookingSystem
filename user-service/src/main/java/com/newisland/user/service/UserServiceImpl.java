@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -25,7 +25,11 @@ public class UserServiceImpl implements UserService{
     @Override
     public User save(User user) {
         user.setCreatedOn(Instant.now());
-        userRepository.save(user);
-        return user;
+        return userRepository.save(user);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        this.findById(id).ifPresent(userRepository::delete);
     }
 }

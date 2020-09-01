@@ -2,6 +2,7 @@ package com.newisland.campsite.catalog.model.entity;
 
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -19,6 +20,8 @@ public class Campsite {
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @EqualsAndHashCode.Include
+    @Type(type = "uuid-char")
+    @Column(length = 36)
     private UUID id;
 
     @NotEmpty(message = "Name is required!")
@@ -36,5 +39,5 @@ public class Campsite {
     private Instant createdOn;
 
     @Basic
-    private Instant updateOn;
+    private Instant updatedOn;
 }

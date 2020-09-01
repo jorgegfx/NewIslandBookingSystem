@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,8 +33,8 @@ class UserControllerTest {
     @Test
     public void testFindUserById(){
         UUID id = UUID.randomUUID();
-        User user = User.builder().name("Test").email("test@test.com").build();
-        when(userService.findById(id)).thenReturn(Optional.of(user));
+        Optional<User> user = Optional.of(User.builder().name("Test").email("test@test.com").build());
+        when(userService.findById(id)).thenReturn(user);
         webTestClient.get()
                 .uri("/user/"+id)
                 .accept(MediaType.APPLICATION_JSON)

@@ -11,4 +11,5 @@ public interface CampsiteService {
     Optional<Campsite> findById(UUID id);
     PageResult<Campsite> findAll(int start, int pageSize);
     Campsite save(Campsite campsite);
+    void delete(UUID id);
 }

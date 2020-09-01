@@ -1,22 +1,20 @@
-package com.newisland.user.model.entity;
+package com.newisland.reservation.model.entity;
 
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "user_profile")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class User {
+public class Reservation {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
@@ -25,13 +23,24 @@ public class User {
     @EqualsAndHashCode.Include
     private UUID id;
 
-    @NotEmpty(message = "Name is required!")
-    @Column(nullable = false, length = 100)
-    private String name;
+    @Type(type = "uuid-char")
+    @Column(length = 36)
+    private UUID userId;
 
-    @NotEmpty(message = "Email is required!")
-    @Column(nullable = false, length = 100, unique = true)
-    private String email;
+    @Type(type = "uuid-char")
+    @Column(length = 36)
+    private UUID campsiteId;
+
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
+
+    @Basic
+    @Column(nullable = false)
+    private Instant arrivalDate;
+
+    @Basic
+    @Column(nullable = false)
+    private Instant departureDate;
 
     @Basic
     @Column(nullable = false)
@@ -39,5 +48,4 @@ public class User {
 
     @Basic
     private Instant updatedOn;
-
 }

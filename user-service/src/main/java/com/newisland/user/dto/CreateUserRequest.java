@@ -9,6 +9,6 @@ public class CreateUserRequest {
     private String email;
 
     public User toDomain(){
-        return User.builder().email(name).name(name).build();
+        return User.builder().email(email).name(name).build();
     }
 }
