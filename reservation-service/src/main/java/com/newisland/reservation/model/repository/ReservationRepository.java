@@ -19,7 +19,8 @@ public interface ReservationRepository extends PagingAndSortingRepository<Reserv
                                                                    Instant start,
                                                                    Instant end);
 
-    @Query(value = "SELECT count(r) FROM Reservation r WHERE r.campsiteId = :campsiteId AND r.status = :status AND (r.arrivalDate BETWEEN :start AND :end) OR (r.departureDate BETWEEN :start AND :end)")
+    @Query(value = "SELECT count(r) FROM Reservation r WHERE r.campsiteId = :campsiteId AND r.status = :status AND" +
+            " ((:start BETWEEN r.arrivalDate AND r.departureDate) OR (:end BETWEEN r.arrivalDate AND r.departureDate))")
     Long countAvailability(@Param("campsiteId") UUID campsiteId,
                            @Param("status") ReservationStatus status,
                            @Param("start") Instant start,

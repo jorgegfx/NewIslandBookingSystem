@@ -61,4 +61,46 @@ class ReservationRepositoryTest {
         assertFalse(reservations.isEmpty());
         assertEquals(expectedReservation,reservations.get(0));
     }
+
+    @Test
+    public void testCountAvailabilityIntersectingDepartureDate(){
+        UUID campsiteId = UUID.randomUUID();
+        Instant createdOn = Instant.now().minus(2, ChronoUnit.DAYS);
+        Instant arrivalDate = createdOn.plus(2, ChronoUnit.DAYS);
+        Instant departureDate = arrivalDate.plus(3, ChronoUnit.DAYS);
+        Reservation reservation = Reservation.builder().
+                userId(UUID.randomUUID()).
+                arrivalDate(arrivalDate).
+                departureDate(departureDate).
+                createdOn(createdOn).
+                status(ReservationStatus.ACTIVE).
+                campsiteId(campsiteId).build();
+        reservationRepository.save(reservation);
+        Instant bookingArrivalDate = arrivalDate.minus(1,ChronoUnit.DAYS);
+        Instant bookingDepartureDate = bookingArrivalDate.plus(2,ChronoUnit.DAYS);
+        Long count = reservationRepository.countAvailability(
+                campsiteId,ReservationStatus.ACTIVE,bookingArrivalDate,bookingDepartureDate);
+        assertEquals(1,count);
+    }
+
+    @Test
+    public void testCountAvailabilityIntersectingArrivalDate(){
+        UUID campsiteId = UUID.randomUUID();
+        Instant createdOn = Instant.now().minus(2, ChronoUnit.DAYS);
+        Instant arrivalDate = createdOn.plus(2, ChronoUnit.DAYS);
+        Instant departureDate = arrivalDate.plus(3, ChronoUnit.DAYS);
+        Reservation reservation = Reservation.builder().
+                userId(UUID.randomUUID()).
+                arrivalDate(arrivalDate).
+                departureDate(departureDate).
+                createdOn(createdOn).
+                status(ReservationStatus.ACTIVE).
+                campsiteId(campsiteId).build();
+        reservationRepository.save(reservation);
+        Instant bookingArrivalDate = arrivalDate.plus(1,ChronoUnit.DAYS);
+        Instant bookingDepartureDate = departureDate.minus(1,ChronoUnit.DAYS);
+        Long count = reservationRepository.countAvailability(
+                campsiteId,ReservationStatus.ACTIVE,bookingArrivalDate,bookingDepartureDate);
+        assertEquals(1,count);
+    }
 }
