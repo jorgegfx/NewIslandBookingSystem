@@ -16,7 +16,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public Mono<User> getUserById(@PathVariable String id) {
-        return Mono.justOrEmpty(userService.findById(UUID.fromString(id)));
+        return Mono.justOrEmpty(userService.findByUuid(id));
     }
 
     @PostMapping("/save")

@@ -18,12 +18,13 @@ public class UserServiceImpl implements UserService{
     private UserRepository userRepository;
 
     @Override
-    public Optional<User> findById(UUID id) {
-        return userRepository.findById(id);
+    public Optional<User> findByUuid(String uuid) {
+        return userRepository.findByUuid(uuid);
     }
 
     @Override
     public User save(User user) {
+        user.setUuid(UUID.randomUUID().toString());
         user.setCreatedOn(Instant.now());
         userRepository.save(user);
         return user;

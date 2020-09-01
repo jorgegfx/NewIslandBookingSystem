@@ -1,4 +1,4 @@
-package com.newisland.user.infrastructure;
+package com.newisland.user.infrastructure.test;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;

@@ -1,5 +1,6 @@
 package com.newisland.user.model.repository;
 
+import com.newisland.user.TestApp;
 import com.newisland.user.model.entity.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,19 +10,26 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.transaction.Transactional;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 @ExtendWith(SpringExtension.class)
 @Transactional
-@SpringBootTest
+@SpringBootTest(classes = TestApp.class)
 class UserRepositoryTest {
     @Autowired private UserRepository userRepository;
 
     @Test
     public void findSavedUserById() {
-        User user = User.builder().name("Test").email("test@test.com").build();
+        User user = User.builder().
+                name("Test").
+                email("test@test.com").
+                uuid(UUID.randomUUID().toString()).
+                createdOn(Instant.now()).build();
         User expectedUser = userRepository.save(user);
-        assertThat(userRepository.findById(user.getId())).hasValue(expectedUser);
+        assertThat(userRepository.findByUuid(user.getUuid())).hasValue(expectedUser);
     }
 }

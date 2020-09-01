@@ -6,6 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserService {
-    Optional<User> findById(UUID id);
+    Optional<User> findByUuid(String uuid);
     User save(User user);
 }
