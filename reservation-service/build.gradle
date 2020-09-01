@@ -19,7 +19,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
-
+    compile("org.springframework.kafka:spring-kafka")
     testRuntimeOnly 'com.h2database:h2'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 
