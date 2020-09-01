@@ -1,7 +1,7 @@
-package com.newisland.user.model.repository;
+package com.newisland.campsite.catalog.model.repository;
 
-import com.newisland.user.TestApp;
-import com.newisland.user.model.entity.User;
+import com.newisland.campsite.catalog.TestApp;
+import com.newisland.campsite.catalog.model.entity.Campsite;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,20 +13,21 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 @ExtendWith(SpringExtension.class)
 @Transactional
 @SpringBootTest(classes = TestApp.class)
-class UserRepositoryTest {
-    @Autowired private UserRepository userRepository;
+class CampsiteRepositoryTest {
+    @Autowired
+    private CampsiteRepository campsiteRepository;
 
     @Test
     public void findSavedUserById() {
-        User user = User.builder().
+        Campsite campsite = Campsite.builder().
                 name("Test").
-                email("test@test.com").
+                longitude(1D).
+                latitude(1D).
                 createdOn(Instant.now()).build();
-        User expectedUser = userRepository.save(user);
-        assertThat(userRepository.findById(user.getId())).hasValue(expectedUser);
+        Campsite expectedCampsite = campsiteRepository.save(campsite);
+        assertThat(campsiteRepository.findById(campsite.getId())).hasValue(expectedCampsite);
     }
 }

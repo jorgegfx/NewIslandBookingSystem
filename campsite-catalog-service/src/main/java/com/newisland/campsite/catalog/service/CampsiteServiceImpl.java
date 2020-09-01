@@ -1,0 +1,38 @@
+package com.newisland.campsite.catalog.service;
+
+import com.newisland.campsite.catalog.model.entity.Campsite;
+import com.newisland.campsite.catalog.model.repository.CampsiteRepository;
+import com.newisland.common.dto.PageResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional
+public class CampsiteServiceImpl implements CampsiteService{
+
+    @Autowired
+    private CampsiteRepository campsiteRepository;
+
+    @Override
+    public Optional<Campsite> findById(UUID id) {
+        return campsiteRepository.findById(id);
+    }
+
+    @Override
+    public PageResult<Campsite> findAll(int start, int pageSize) {
+        Page<Campsite> page = campsiteRepository.findAll(PageRequest.of(start,pageSize));
+        return new PageResult<>(page.get().collect(Collectors.toList()), page.getTotalPages());
+    }
+
+    @Override
+    public Campsite save(Campsite campsite) {
+        return campsiteRepository.save(campsite);
+    }
+}

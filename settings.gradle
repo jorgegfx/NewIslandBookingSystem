@@ -1,2 +1,3 @@
+include 'common'
 include 'user-service'
 include 'campsite-catalog-service'

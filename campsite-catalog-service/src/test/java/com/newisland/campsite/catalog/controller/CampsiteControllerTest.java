@@ -1,13 +1,12 @@
-package com.newisland.user.controller;
+package com.newisland.campsite.catalog.controller;
 
-import com.newisland.user.TestApp;
-import com.newisland.user.model.entity.User;
-import com.newisland.user.service.UserService;
+import com.newisland.campsite.catalog.TestApp;
+import com.newisland.campsite.catalog.model.entity.Campsite;
+import com.newisland.campsite.catalog.service.CampsiteService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,27 +20,28 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
-@WebFluxTest(UserController.class)
-@ContextConfiguration(classes=TestApp.class)
-class UserControllerTest {
+@WebFluxTest(CampsiteController.class)
+@ContextConfiguration(classes= TestApp.class)
+class CampsiteControllerTest {
     @Autowired
     WebTestClient webTestClient;
 
     @MockBean
-    private UserService userService;
+    private CampsiteService campsiteService;
 
 
     @Test
     public void testFindUserById(){
         UUID id = UUID.randomUUID();
-        User user = User.builder().name("Test").email("test@test.com").build();
-        when(userService.findById(id)).thenReturn(Optional.of(user));
+        Campsite campsite = Campsite.builder().
+                name("Test").longitude(1D).latitude(1D).build();
+        when(campsiteService.findById(id)).thenReturn(Optional.of(campsite));
         webTestClient.get()
-                .uri("/user/"+id)
+                .uri("/campsite/"+id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(User.class)
+                .expectBody(Campsite.class)
                 .value(resUser -> resUser.getName(), equalTo("Test"));
     }
 }
