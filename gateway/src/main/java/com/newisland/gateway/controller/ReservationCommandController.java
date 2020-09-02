@@ -1,4 +1,4 @@
-package com.newisland.gateway;
+package com.newisland.gateway.controller;
 
 import com.newisland.common.dto.utils.TimeUtils;
 import com.newisland.common.messages.command.ReservationCommandOuterClass;
@@ -7,10 +7,13 @@ import com.newisland.gateway.dto.UpdateReservationDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.TimeZone;
 
 import static com.newisland.common.messages.command.ReservationCommandOuterClass.ReservationCommand.ActionType.*;
 @Slf4j
