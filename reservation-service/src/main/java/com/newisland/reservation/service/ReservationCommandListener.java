@@ -4,12 +4,11 @@ import com.google.protobuf.Timestamp;
 import com.newisland.common.messages.command.CreateReservationCommandOuterClass;
 import com.newisland.reservation.client.UserServiceClient;
 import com.newisland.reservation.model.entity.Reservation;
-import com.newisland.reservation.model.entity.ReservationStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -29,7 +28,7 @@ public class ReservationCommandListener {
 
     @KafkaListener(topics = "reservation")
     public void consume(ConsumerRecord<String, byte[]> message) {
-        log.info(String.format("#### -> Consumed message -> %s", message));
+        log.info(String.format("#### -> Consumed message -> %s", message.key()));
         try {
             CreateReservationCommandOuterClass.CreateReservationCommand cmd =
                     CreateReservationCommandOuterClass.CreateReservationCommand.parseFrom(message.value());

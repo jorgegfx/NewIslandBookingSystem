@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface CampsiteService {
     Optional<Campsite> findById(UUID id);
-    PageResult<Campsite> findAll(int start, int pageSize);
+    PageResult<Campsite> findAllByPage(int start, int pageSize);
     Campsite save(Campsite campsite);
     void delete(UUID id);
 }

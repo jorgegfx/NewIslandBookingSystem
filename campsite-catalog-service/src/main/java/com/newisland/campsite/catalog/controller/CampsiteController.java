@@ -25,8 +25,8 @@ public class CampsiteController {
     }
 
     @GetMapping("/all/{start}/{pageSize}")
-    public Mono<PageResult> getAllCampsites(@PathVariable int start, @PathVariable int pageSize) {
-        return Mono.just(campsiteService.findAll(start,pageSize));
+    public Mono<PageResult> getAllCampsitesByPage(@PathVariable int start, @PathVariable int pageSize) {
+        return Mono.just(campsiteService.findAllByPage(start,pageSize));
     }
 
     @PostMapping

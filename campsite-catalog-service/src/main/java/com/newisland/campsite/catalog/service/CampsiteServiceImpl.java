@@ -4,6 +4,8 @@ import com.newisland.campsite.catalog.model.entity.Campsite;
 import com.newisland.campsite.catalog.model.repository.CampsiteRepository;
 import com.newisland.common.dto.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -27,12 +29,14 @@ public class CampsiteServiceImpl implements CampsiteService{
     }
 
     @Override
-    public PageResult<Campsite> findAll(int start, int pageSize) {
+    @CachePut(cacheNames="campsitePage", key="#start-#pageSize")
+    public PageResult<Campsite> findAllByPage(int start, int pageSize) {
         Page<Campsite> page = campsiteRepository.findAll(PageRequest.of(start,pageSize));
         return new PageResult<>(page.get().collect(Collectors.toList()), page.getTotalPages());
     }
 
     @Override
+    @CacheEvict(cacheNames="campsitePage", allEntries=true)
     public Campsite save(Campsite campsite) {
         campsite.setCreatedOn(Instant.now());
         return campsiteRepository.save(campsite);

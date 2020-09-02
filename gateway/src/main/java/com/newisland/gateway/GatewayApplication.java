@@ -22,7 +22,9 @@ import com.newisland.common.messages.command.*;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
-
+/**
+ * Gateway Application
+ */
 @SpringBootApplication
 @EnableConfigurationProperties(UriConfiguration.class)
 @RestController
@@ -58,19 +60,22 @@ public class GatewayApplication {
         kafkaTemplate.send(reservationTopic,createReservationDto.getCampsiteId(),messageToWrite);
     }
 
+    /**
+     * Routes are build programmatically to support changes on the profile (local, kubernetes ...)
+     * but is possible as well to have all routes in a application.yml
+     */
     @Bean
     public RouteLocator newIslandRoutes(RouteLocatorBuilder builder, UriConfiguration uriConfiguration) {
-        String apiPath = uriConfiguration.getApiPath();
         return builder.routes()
                 .route(p -> p
-                        .path(apiPath+"/user")
-                        .uri(uriConfiguration.getUserServiceUrl()+"/user"))
+                        .path("/user/**")
+                        .uri(uriConfiguration.getUserServiceUrl()))
                 .route(p -> p
-                        .path(apiPath+"/campsite")
-                        .uri(uriConfiguration.getCampsiteCatalogServiceUrl()+"/campsite"))
+                        .path("/campsite/**")
+                        .uri(uriConfiguration.getCampsiteCatalogServiceUrl()))
                 .route(p -> p
-                        .path(apiPath+"/reservation")
-                        .uri(uriConfiguration.getReservationServiceUrl()+"/reservation"))
+                        .path("/reservation/**")
+                        .uri(uriConfiguration.getReservationServiceUrl()))
                 .build();
     }
 
@@ -88,8 +93,5 @@ class UriConfiguration {
 
     @Value("${campsite-catalog-service}")
     private String campsiteCatalogServiceUrl;
-
-    @Value("${api-path}")
-    private String apiPath;
 
 }
