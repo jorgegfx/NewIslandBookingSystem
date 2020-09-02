@@ -1,7 +1,9 @@
 package com.newisland.gateway;
 
-import com.google.protobuf.Timestamp;
+import com.newisland.common.dto.utils.TimeUtils;
+import com.newisland.common.messages.command.ReservationCommandOuterClass;
 import com.newisland.gateway.dto.CreateReservationDto;
+import com.newisland.gateway.dto.UpdateReservationDto;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,14 +16,10 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import com.newisland.common.messages.command.*;
+import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
-import java.time.ZonedDateTime;
+import static com.newisland.common.messages.command.ReservationCommandOuterClass.ReservationCommand.ActionType.*;
+
 /**
  * Gateway Application
  */
@@ -39,23 +37,50 @@ public class GatewayApplication {
     @Value("${reservation-topic}")
     private String reservationTopic;
 
-    private Timestamp convertTimestamp(ZonedDateTime zonedDateTime){
-        Instant time = zonedDateTime.toInstant();
-        return Timestamp.newBuilder().setSeconds(time.getEpochSecond())
-                .setNanos(time.getNano()).build();
+    @DeleteMapping(value = "/cancelReservation/{campsiteId}/{id}")
+    @ResponseStatus(code = HttpStatus.OK)
+    public void cancelReservation(@PathVariable String campsiteId,@PathVariable String id){
+        ReservationCommandOuterClass.CancelReservationCommand cancel =
+                ReservationCommandOuterClass.CancelReservationCommand.newBuilder().
+                        setId(id).build();
+        ReservationCommandOuterClass.ReservationCommand cmd =
+                ReservationCommandOuterClass.ReservationCommand.newBuilder().
+                        setActionType(CANCEL).setCancel(cancel).build();
+        byte[] messageToWrite = cmd.toByteArray();
+        kafkaTemplate.send(reservationTopic,campsiteId,messageToWrite);
+    }
+
+    @PatchMapping(value = "/updateReservation/{id}")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    public void updateReservation(@PathVariable String id,@RequestBody UpdateReservationDto updateReservationDto){
+        ReservationCommandOuterClass.UpdateReservationCommand update =
+                ReservationCommandOuterClass.UpdateReservationCommand.newBuilder().
+                        setId(id).
+                        setCampsiteId(updateReservationDto.getCampsiteId()).
+                        setArrivalDate(TimeUtils.convertTimestamp(updateReservationDto.getArrivalDate())).
+                        setDepartureDate(TimeUtils.convertTimestamp(updateReservationDto.getDepartureDate())).
+                        build();
+        ReservationCommandOuterClass.ReservationCommand cmd =
+                ReservationCommandOuterClass.ReservationCommand.newBuilder().
+                        setActionType(UPDATE).setUpdate(update).build();
+        byte[] messageToWrite = cmd.toByteArray();
+        kafkaTemplate.send(reservationTopic,updateReservationDto.getCampsiteId(),messageToWrite);
     }
 
     @PostMapping(value = "/createReservation")
     @ResponseStatus(code = HttpStatus.CREATED)
     public void createReservation(@RequestBody CreateReservationDto createReservationDto) {
-        CreateReservationCommandOuterClass.CreateReservationCommand cmd =
-                CreateReservationCommandOuterClass.CreateReservationCommand.newBuilder().
+        ReservationCommandOuterClass.CreateReservationCommand create =
+                ReservationCommandOuterClass.CreateReservationCommand.newBuilder().
                         setCampsiteId(createReservationDto.getCampsiteId()).
                         setUserEmail(createReservationDto.getUserEmail()).
                         setUserFullName(createReservationDto.getUserEmail()).
-                        setArrivalDate(convertTimestamp(createReservationDto.getArrivalDate())).
-                        setDepartureDate(convertTimestamp(createReservationDto.getDepartureDate())).
+                        setArrivalDate(TimeUtils.convertTimestamp(createReservationDto.getArrivalDate())).
+                        setDepartureDate(TimeUtils.convertTimestamp(createReservationDto.getDepartureDate())).
                         build();
+        ReservationCommandOuterClass.ReservationCommand cmd =
+                ReservationCommandOuterClass.ReservationCommand.newBuilder().
+                        setActionType(CREATE).setCreate(create).build();
         byte[] messageToWrite = cmd.toByteArray();
         kafkaTemplate.send(reservationTopic,createReservationDto.getCampsiteId(),messageToWrite);
     }

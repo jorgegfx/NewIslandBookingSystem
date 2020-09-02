@@ -4,6 +4,7 @@ import com.newisland.user.dto.CreateUserRequest;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -13,11 +14,15 @@ import java.util.UUID;
 @Service
 public class UserServiceClientImpl implements UserServiceClient{
 
-    @Autowired
     private RestTemplate restTemplate;
 
     @Value("${user-service-url}")
     private String userServiceUrl;
+
+    @Autowired
+    public UserServiceClientImpl(RestTemplateBuilder builder) {
+        this.restTemplate = builder.build();
+    }
 
     @Data
     class UserResponse{

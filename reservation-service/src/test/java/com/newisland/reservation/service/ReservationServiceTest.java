@@ -10,10 +10,10 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -193,5 +193,68 @@ class ReservationServiceTest {
                         reservation.getArrivalDate(),
                         reservation.getDepartureDate())).thenReturn(1L);
         assertThrows(AlreadyBookedReservationException.class,()->reservationService.save(reservation));
+    }
+
+    /**
+     * The campsite can be reserved minimum 1 day(s) ahead of arrival
+     * Success Scenario
+     */
+    @Test
+    public void testCampsiteUpdateShouldBeBookedWithMinDayAheadSuccess(){
+        UUID campsiteId = UUID.randomUUID();
+        Instant now = Instant.now();
+        Instant createdOn = now;
+        // Adding one min more since time diff
+        Instant arrivalDate = createdOn.plus(1,ChronoUnit.DAYS).plus(1,ChronoUnit.MINUTES);
+        Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
+        Reservation reservation = Reservation.builder().
+                id(UUID.randomUUID()).
+                userId(UUID.randomUUID()).
+                arrivalDate(arrivalDate).
+                departureDate(departureDate).
+                createdOn(createdOn).
+                campsiteId(campsiteId).build();
+        when(reservationRepository.
+                countAvailability(
+                        reservation.getCampsiteId(),
+                        ReservationStatus.ACTIVE,
+                        reservation.getArrivalDate(),
+                        reservation.getDepartureDate())).thenReturn(0L);
+        when(reservationRepository.findById(reservation.getId())).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(reservation)).thenReturn(reservation);
+        Optional<Reservation> res = reservationService.update(reservation);
+        assertTrue(res.isPresent());
+        assertEquals(reservation,res.get());
+    }
+
+    /**
+     * The campsite can be reserved minimum 1 day(s) ahead of arrival
+     * No update Scenario
+     */
+    @Test
+    public void testCampsiteUpdateShouldBeBookedWithMinDayAheadNone(){
+        UUID campsiteId = UUID.randomUUID();
+        Instant now = Instant.now();
+        Instant createdOn = now;
+        // Adding one min more since time diff
+        Instant arrivalDate = createdOn.plus(1,ChronoUnit.DAYS).plus(1,ChronoUnit.MINUTES);
+        Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
+        Reservation reservation = Reservation.builder().
+                id(UUID.randomUUID()).
+                userId(UUID.randomUUID()).
+                arrivalDate(arrivalDate).
+                departureDate(departureDate).
+                createdOn(createdOn).
+                campsiteId(campsiteId).build();
+        when(reservationRepository.
+                countAvailability(
+                        reservation.getCampsiteId(),
+                        ReservationStatus.ACTIVE,
+                        reservation.getArrivalDate(),
+                        reservation.getDepartureDate())).thenReturn(0L);
+        when(reservationRepository.findById(reservation.getId())).thenReturn(Optional.empty());
+        when(reservationRepository.save(reservation)).thenReturn(reservation);
+        Optional<Reservation> res = reservationService.update(reservation);
+        assertFalse(res.isPresent());
     }
 }

@@ -16,7 +16,7 @@ public interface ReservationService {
 
     Reservation save(Reservation reservation);
 
-    Reservation update(Reservation reservation);
+    Optional<Reservation> update(Reservation reservation);
 
-    void cancel(Reservation reservation);
+    void cancel(UUID id);
 }

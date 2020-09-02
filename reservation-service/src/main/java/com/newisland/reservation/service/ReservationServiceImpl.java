@@ -22,13 +22,13 @@ import java.util.UUID;
 @Transactional
 public class ReservationServiceImpl implements ReservationService {
 
-    @Value("${max.allowed}:3")
+    @Value("${max.allowed:3}")
     private int maxAllowedDays;
 
-    @Value("${min.allowed.ahead}:1")
+    @Value("${min.allowed.ahead:1}")
     private int minAllowedDaysAhead;
 
-    @Value("${max.allowed.ahead}:30")
+    @Value("${max.allowed.ahead:30}")
     private int maxAllowedDaysAhead;
 
     public ReservationServiceImpl() {
@@ -116,21 +116,23 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public Reservation update(Reservation reservation) {
+    public Optional<Reservation> update(Reservation reservation) {
         Optional<Reservation> res = this.findById(reservation.getId()).map(existentReservation -> {
             Instant now = Instant.now();
+            reservation.setUserId(existentReservation.getUserId());
+            reservation.setCreatedOn(existentReservation.getCreatedOn());
             reservation.setUpdatedOn(now);
             return trySaveRecord(now,reservation);
         });
         if (res.isPresent() && res.get().getUpdatedOn() != null) {
-            return res.get();
+            return res;
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
-    public void cancel(Reservation reservation) {
-        this.findById(reservation.getId()).ifPresent(existentReservation -> {
+    public void cancel(UUID id) {
+        this.findById(id).ifPresent(existentReservation -> {
             existentReservation.setUpdatedOn(Instant.now());
             existentReservation.setStatus(ReservationStatus.CANCELLED);
             reservationRepository.save(existentReservation);
