@@ -2,6 +2,7 @@ package com.newisland.reservation.service;
 
 import com.google.protobuf.Timestamp;
 import com.newisland.common.messages.command.CreateReservationCommandOuterClass;
+import com.newisland.reservation.client.UserServiceClient;
 import com.newisland.reservation.model.entity.Reservation;
 import com.newisland.reservation.model.entity.ReservationStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,8 @@ public class ReservationCommandListener {
 
     @Autowired
     private ReservationService reservationService;
+    @Autowired
+    private UserServiceClient userServiceClient;
 
     private Instant convertToInstant(Timestamp timestamp){
         return Instant.ofEpochMilli(timestamp.getSeconds());
@@ -30,8 +33,10 @@ public class ReservationCommandListener {
         try {
             CreateReservationCommandOuterClass.CreateReservationCommand cmd =
                     CreateReservationCommandOuterClass.CreateReservationCommand.parseFrom(message.value());
+            UUID userId = userServiceClient.createUser(cmd.getUserEmail(), cmd.getUserFullName());
             Reservation reservation = Reservation.builder().
                     campsiteId(UUID.fromString(cmd.getCampsiteId())).
+                    userId(userId).
                     arrivalDate(convertToInstant(cmd.getArrivalDate())).
                     departureDate(convertToInstant(cmd.getDepartureDate())).
                     build();

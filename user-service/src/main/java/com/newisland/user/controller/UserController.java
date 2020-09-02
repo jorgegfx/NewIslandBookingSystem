@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequestMapping("/user")
@@ -24,25 +25,27 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
-    private Mono<User> save(@RequestBody CreateUserRequest createUserRequest){
+    private Mono<User> findByEmailOrCreate(@RequestBody CreateUserRequest createUserRequest) {
         try {
             return Mono.justOrEmpty(
-                    userService.save(createUserRequest.toDomain()));
-        }catch (Exception ex){
-            String errorMessage = String.format("Error Creating user: %s ...",createUserRequest);
-            log.error(errorMessage,ex);
+                    userService.findByEmailOrCreate(
+                            createUserRequest.getEmail(),createUserRequest.getName()));
+        } catch (Exception ex) {
+            String errorMessage = String.format("Error Creating user: %s ...", createUserRequest);
+            log.error(errorMessage, ex);
             return Mono.error(new IllegalStateException(errorMessage));
         }
     }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public Mono<Void> delete(@PathVariable String id){
-        try{
+    public Mono<Void> delete(@PathVariable String id) {
+        try {
             userService.delete(UUID.fromString(id));
             return Mono.empty().then();
-        }catch (Exception ex){
-            String errorMessage = String.format("Error Deleting user: %s ...",id);
-            log.error(errorMessage,ex);
+        } catch (Exception ex) {
+            String errorMessage = String.format("Error Deleting user: %s ...", id);
+            log.error(errorMessage, ex);
             return Mono.error(new IllegalStateException(errorMessage));
         }
     }
