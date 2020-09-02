@@ -1,6 +1,6 @@
 # New Island Booking System
 
-##Back-end Tech Challenge
+## Back-end Tech Challenge
 
 An underwater volcano formed a new small island in the Pacific Ocean last month. All the conditions on the island seems perfect and it was
 decided to open it up for the general public to experience the pristine uncharted territory.
@@ -15,7 +15,7 @@ To streamline the reservations a few constraints need to be in place -
 4. Reservations can be cancelled anytime.
 5. For sake of simplicity assume the check-in & check-out time is 12:00 AM
 
-##System Requirements
+## System Requirements
 
 1. The users will need to find out when the campsite is available. So the system should expose an API to provide information of the
 availability of the campsite for a given date range with the default being 1 month.
@@ -29,8 +29,8 @@ date(s). Demonstrate with appropriate test cases that the system can gracefully 
 6. In general, the system should be able to handle large volume of requests for getting the campsite availability.
 7. There are no restrictions on how reservations are stored as as long as system constraints are not violated.
 
-#System Design
+# System Design
 
-##Component Diagram
+## Component Diagram
 
 ![Component Diagram](NewIslandBooking.png)
