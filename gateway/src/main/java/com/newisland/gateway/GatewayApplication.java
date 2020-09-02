@@ -1,15 +1,6 @@
 package com.newisland.gateway;
 
-import com.newisland.common.dto.utils.TimeUtils;
-import com.newisland.common.messages.command.ReservationCommandOuterClass;
-import com.newisland.gateway.dto.CreateReservationDto;
-import com.newisland.gateway.dto.UpdateReservationDto;
-import com.newisland.gateway.serializer.ReservationCommandProtobufSerializer;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,17 +9,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpStatus;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.newisland.common.messages.command.ReservationCommandOuterClass.ReservationCommand.ActionType.*;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Gateway Application

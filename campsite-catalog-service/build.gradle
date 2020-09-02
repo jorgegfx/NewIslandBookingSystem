@@ -28,7 +28,9 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
 }
-
+springBoot {
+    mainClassName = 'com.newisland.campsite.catalog.CampsiteCatalogApp'
+}
 test {
     useJUnitPlatform()
 }
