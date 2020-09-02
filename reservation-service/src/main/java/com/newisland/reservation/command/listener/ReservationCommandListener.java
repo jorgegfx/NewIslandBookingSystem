@@ -1,6 +1,6 @@
 package com.newisland.reservation.command.listener;
 
-import com.google.protobuf.Timestamp;
+import com.newisland.common.dto.utils.TimeUtils;
 import com.newisland.common.messages.command.ReservationCommandOuterClass;
 import com.newisland.reservation.client.UserServiceClient;
 import com.newisland.reservation.model.entity.Reservation;
@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @Slf4j
@@ -32,17 +31,15 @@ public class ReservationCommandListener {
         this.userServiceClient = userServiceClient;
     }
 
-    private Instant convertToInstant(Timestamp timestamp){
-        return Instant.ofEpochMilli(timestamp.getSeconds());
-    }
+
 
     private void onCreate(ReservationCommandOuterClass.CreateReservationCommand create){
         UUID userId = userServiceClient.createUser(create.getUserEmail(), create.getUserFullName());
         Reservation reservation = Reservation.builder().
                 campsiteId(UUID.fromString(create.getCampsiteId())).
                 userId(userId).
-                arrivalDate(convertToInstant(create.getArrivalDate())).
-                departureDate(convertToInstant(create.getDepartureDate())).
+                arrivalDate(TimeUtils.convertToInstant(create.getArrivalDate())).
+                departureDate(TimeUtils.convertToInstant(create.getDepartureDate())).
                 build();
         reservationService.save(reservation);
     }
@@ -51,8 +48,8 @@ public class ReservationCommandListener {
         Reservation reservation = Reservation.builder().
                 id(UUID.fromString(update.getId())).
                 campsiteId(UUID.fromString(update.getCampsiteId())).
-                arrivalDate(convertToInstant(update.getArrivalDate())).
-                departureDate(convertToInstant(update.getDepartureDate())).
+                arrivalDate(TimeUtils.convertToInstant(update.getArrivalDate())).
+                departureDate(TimeUtils.convertToInstant(update.getDepartureDate())).
                 build();
         reservationService.update(reservation);
     }

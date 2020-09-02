@@ -1,5 +1,6 @@
 package com.newisland.common.dto.utils;
 
+import com.google.protobuf.Timestamp;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -22,5 +23,13 @@ class TimeUtilsTest {
     public void testConvertUTC(){
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("America/Toronto"));
         Instant instant = TimeUtils.getUTCInstant(zonedDateTime);
+    }
+
+    @Test
+    public void testConvertProtoTimeStamp(){
+        ZonedDateTime localTime = ZonedDateTime.now();
+        Timestamp timestamp = TimeUtils.convertTimestamp(localTime);
+        Instant instant = TimeUtils.convertToInstant(timestamp);
+        System.out.println(instant);
     }
 }

@@ -8,6 +8,10 @@ import java.time.ZonedDateTime;
 import java.util.TimeZone;
 
 public class TimeUtils {
+    public static Instant convertToInstant(Timestamp timestamp){
+        return Instant.ofEpochSecond( timestamp.getSeconds() , timestamp.getNanos() ) ;
+    }
+
     public static Timestamp convertTimestamp(ZonedDateTime zonedDateTime){
         Instant time = zonedDateTime.toInstant();
         return Timestamp.newBuilder().setSeconds(time.getEpochSecond())
