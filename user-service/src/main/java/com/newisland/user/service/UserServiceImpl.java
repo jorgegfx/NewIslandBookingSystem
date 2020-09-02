@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByEmailOrCreate(String email, String name) {
         return userRepository.findByEmail(email).orElse(
-                userRepository.save(User.builder().email(email).name(name).build()));
+                this.save(User.builder().email(email).name(name).build()));
     }
 
     @Override

@@ -62,11 +62,11 @@ public class ReservationCommandListener {
     }
 
     @KafkaListener(topics = "${reservation-topic}", groupId = "ReservationConsumerGroup")
-    public void consume(ConsumerRecord<String, byte[]> message) {
+    public void consume(ConsumerRecord<String, ReservationCommandOuterClass.ReservationCommand> message) {
         log.info(String.format("#### -> Consumed message -> %s", message.key()));
         ReservationCommandOuterClass.ReservationCommand cmd = null;
         try {
-            cmd = ReservationCommandOuterClass.ReservationCommand.parseFrom(message.value());
+            cmd = message.value();
             switch (cmd.getActionType()){
                 case CREATE: this.onCreate(cmd.getCreate());break;
                 case UPDATE: this.onUpdate(cmd.getUpdate());break;

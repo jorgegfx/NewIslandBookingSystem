@@ -6,8 +6,8 @@ import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
 @EnableCaching
-public class App {
+public class CampsiteCatalogApp {
     public static void main(String[] args) {
-        SpringApplication.run(App.class, args);
+        SpringApplication.run(CampsiteCatalogApp.class, args);
     }
 }

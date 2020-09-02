@@ -25,7 +25,7 @@ class ReservationCommandListenerTest {
     private ReservationCommandListener reservationCommandListener =
             new ReservationCommandListener(reservationService, userServiceClient);
 
-
+/*
     @Test
     public void testOnConsumeCreate() {
         String campsiteId = UUID.randomUUID().toString();
@@ -98,5 +98,5 @@ class ReservationCommandListenerTest {
         when(reservationService.update(reservation)).thenReturn(Optional.of(reservation));
         reservationCommandListener.consume(consumerRecord);
         verify(reservationService).update(reservation);
-    }
+    }*/
 }

@@ -4,7 +4,11 @@ import com.newisland.common.dto.utils.TimeUtils;
 import com.newisland.common.messages.command.ReservationCommandOuterClass;
 import com.newisland.gateway.dto.CreateReservationDto;
 import com.newisland.gateway.dto.UpdateReservationDto;
+import com.newisland.gateway.serializer.ReservationCommandProtobufSerializer;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -15,14 +19,21 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.newisland.common.messages.command.ReservationCommandOuterClass.ReservationCommand.ActionType.*;
 
 /**
  * Gateway Application
  */
+@Slf4j
 @SpringBootApplication
 @EnableConfigurationProperties(UriConfiguration.class)
 @RestController
@@ -32,57 +43,69 @@ public class GatewayApplication {
     }
 
     @Autowired
-    private KafkaTemplate<String, byte[]> kafkaTemplate;
+    private KafkaTemplate<String, ReservationCommandOuterClass.ReservationCommand> kafkaTemplate;
 
     @Value("${reservation-topic}")
     private String reservationTopic;
 
-    @DeleteMapping(value = "/cancelReservation/{campsiteId}/{id}")
+    @DeleteMapping("/cancelReservation/{campsiteId}/{id}")
     @ResponseStatus(code = HttpStatus.OK)
-    public void cancelReservation(@PathVariable String campsiteId,@PathVariable String id){
-        ReservationCommandOuterClass.CancelReservationCommand cancel =
-                ReservationCommandOuterClass.CancelReservationCommand.newBuilder().
-                        setId(id).build();
-        ReservationCommandOuterClass.ReservationCommand cmd =
-                ReservationCommandOuterClass.ReservationCommand.newBuilder().
-                        setActionType(CANCEL).setCancel(cancel).build();
-        byte[] messageToWrite = cmd.toByteArray();
-        kafkaTemplate.send(reservationTopic,campsiteId,messageToWrite);
+    public Mono<Void> cancelReservation(@PathVariable String campsiteId,@PathVariable String id){
+        try {
+            ReservationCommandOuterClass.CancelReservationCommand cancel =
+                    ReservationCommandOuterClass.CancelReservationCommand.newBuilder().
+                            setId(id).build();
+            ReservationCommandOuterClass.ReservationCommand cmd =
+                    ReservationCommandOuterClass.ReservationCommand.newBuilder().
+                            setActionType(CANCEL).setCancel(cancel).build();
+            kafkaTemplate.send(reservationTopic, campsiteId, cmd);
+        }catch (Exception ex){
+            log.error("Error canceling reservation",ex);
+        }
+        return Mono.empty().then();
     }
 
-    @PatchMapping(value = "/updateReservation/{id}")
+    @PatchMapping("/updateReservation/{id}")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public void updateReservation(@PathVariable String id,@RequestBody UpdateReservationDto updateReservationDto){
-        ReservationCommandOuterClass.UpdateReservationCommand update =
-                ReservationCommandOuterClass.UpdateReservationCommand.newBuilder().
-                        setId(id).
-                        setCampsiteId(updateReservationDto.getCampsiteId()).
-                        setArrivalDate(TimeUtils.convertTimestamp(updateReservationDto.getArrivalDate())).
-                        setDepartureDate(TimeUtils.convertTimestamp(updateReservationDto.getDepartureDate())).
-                        build();
-        ReservationCommandOuterClass.ReservationCommand cmd =
-                ReservationCommandOuterClass.ReservationCommand.newBuilder().
-                        setActionType(UPDATE).setUpdate(update).build();
-        byte[] messageToWrite = cmd.toByteArray();
-        kafkaTemplate.send(reservationTopic,updateReservationDto.getCampsiteId(),messageToWrite);
+    public Mono<Void> updateReservation(@PathVariable String id,@RequestBody UpdateReservationDto updateReservationDto){
+        try {
+            ReservationCommandOuterClass.UpdateReservationCommand update =
+                    ReservationCommandOuterClass.UpdateReservationCommand.newBuilder().
+                            setId(id).
+                            setCampsiteId(updateReservationDto.getCampsiteId()).
+                            setArrivalDate(TimeUtils.convertTimestamp(updateReservationDto.getArrivalDate())).
+                            setDepartureDate(TimeUtils.convertTimestamp(updateReservationDto.getDepartureDate())).
+                            build();
+            ReservationCommandOuterClass.ReservationCommand cmd =
+                    ReservationCommandOuterClass.ReservationCommand.newBuilder().
+                            setActionType(UPDATE).setUpdate(update).build();
+            kafkaTemplate.send(reservationTopic, updateReservationDto.getCampsiteId(), cmd);
+        }catch (Exception ex){
+            log.error("Error updating reservation",ex);
+        }
+        return Mono.empty().then();
     }
 
-    @PostMapping(value = "/createReservation")
+    @PostMapping("/createReservation")
     @ResponseStatus(code = HttpStatus.CREATED)
-    public void createReservation(@RequestBody CreateReservationDto createReservationDto) {
-        ReservationCommandOuterClass.CreateReservationCommand create =
-                ReservationCommandOuterClass.CreateReservationCommand.newBuilder().
-                        setCampsiteId(createReservationDto.getCampsiteId()).
-                        setUserEmail(createReservationDto.getUserEmail()).
-                        setUserFullName(createReservationDto.getUserEmail()).
-                        setArrivalDate(TimeUtils.convertTimestamp(createReservationDto.getArrivalDate())).
-                        setDepartureDate(TimeUtils.convertTimestamp(createReservationDto.getDepartureDate())).
-                        build();
-        ReservationCommandOuterClass.ReservationCommand cmd =
-                ReservationCommandOuterClass.ReservationCommand.newBuilder().
-                        setActionType(CREATE).setCreate(create).build();
-        byte[] messageToWrite = cmd.toByteArray();
-        kafkaTemplate.send(reservationTopic,createReservationDto.getCampsiteId(),messageToWrite);
+    public Mono<Void> createReservation(@RequestBody CreateReservationDto createReservationDto) {
+        try {
+            ReservationCommandOuterClass.CreateReservationCommand create =
+                    ReservationCommandOuterClass.CreateReservationCommand.newBuilder().
+                            setCampsiteId(createReservationDto.getCampsiteId()).
+                            setUserEmail(createReservationDto.getUserEmail()).
+                            setUserFullName(createReservationDto.getUserFullName()).
+                            setArrivalDate(TimeUtils.convertTimestamp(createReservationDto.getArrivalDate())).
+                            setDepartureDate(TimeUtils.convertTimestamp(createReservationDto.getDepartureDate())).
+                            build();
+            ReservationCommandOuterClass.ReservationCommand cmd =
+                    ReservationCommandOuterClass.ReservationCommand.newBuilder().
+                            setActionType(CREATE).setCreate(create).build();
+            kafkaTemplate.send(reservationTopic, createReservationDto.getCampsiteId(), cmd);
+        }catch (Exception ex){
+            log.error("Error creating reservation",ex);
+        }
+        return Mono.empty().then();
     }
 
     /**
