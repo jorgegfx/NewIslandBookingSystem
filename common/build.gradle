@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+    id "com.google.protobuf" version "0.8.13"
+}
+
+group = 'com.newisland'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    compile "com.google.protobuf:protobuf-java:3.6.1"
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+}
+sourceSets {
+    main {
+        proto {
+            srcDir 'src/main/proto'
+        }
+        java {
+            srcDir 'src/main/java'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
+    test {
+        proto {
+            srcDir 'src/test/proto'
+        }
+        proto {
+            srcDir 'src/test/java'
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+protobuf {
+    // Configure the protoc executable
+    protoc {
+        // Download from repositories
+        artifact = 'com.google.protobuf:protoc:3.2.0'
+    }
+    generateProtoTasks {
+        // all() returns the collection of all protoc tasks
+        all().each { task ->
+            // Here you can configure the task
+        }
+
+        // In addition to all(), you may get the task collection by various
+        // criteria:
+
+        // (Java only) returns tasks for a sourceSet
+        ofSourceSet('main')
+
+    }
+}

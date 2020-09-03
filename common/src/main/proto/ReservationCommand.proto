@@ -1,0 +1,36 @@
+syntax = "proto3";
+package com.newisland.common.messages.command;
+import "google/protobuf/timestamp.proto";
+
+message ReservationCommand {
+  enum ActionType{
+    CREATE = 0;
+    UPDATE = 1;
+    CANCEL = 2;
+  }
+  ActionType action_type = 3;
+  oneof command {
+    CreateReservationCommand create = 4;
+    UpdateReservationCommand update = 5;
+    CancelReservationCommand cancel = 6;
+  }
+}
+
+message CreateReservationCommand{
+  string user_full_name = 1;
+  string user_email = 2;
+  string campsite_id = 3;
+  google.protobuf.Timestamp arrival_date = 4;
+  google.protobuf.Timestamp departure_date = 5;
+}
+
+message UpdateReservationCommand{
+  string id = 1;
+  string campsite_id = 2;
+  google.protobuf.Timestamp arrival_date = 3;
+  google.protobuf.Timestamp departure_date = 4;
+}
+
+message CancelReservationCommand{
+  string id = 1;
+}

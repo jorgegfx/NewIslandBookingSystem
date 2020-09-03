@@ -1,0 +1,465 @@
+{
+	"info": {
+		"_postman_id": "d244f121-3564-4837-b4c4-0790cf097e6f",
+		"name": "NewIsland",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Save User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "790246cc-860a-4f96-83b1-7d27dbb31695",
+								"exec": [
+									"pm.test(\"Status Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"response must be valid and have a body\", function () {",
+									"     pm.response.to.be.withBody;",
+									"     pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Valid response id\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.globals.set(\"user_id\", jsonData.id);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"Jorge\",\n    \"email\":\"{{USER_EMAIL}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8081/user",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FindUser",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8081/user/{{USER_ID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"user",
+								"{{USER_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteUser",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8081/user/{{USER_ID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"user",
+								"{{USER_ID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "CampsiteCatalog",
+			"item": [
+				{
+					"name": "Save Campsite",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "432c7b4c-2628-4bfe-9ea3-91be2a57e811",
+								"exec": [
+									"pm.test(\"Status Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"response must be valid and have a body\", function () {",
+									"     pm.response.to.be.withBody;",
+									"     pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Valid response id\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.globals.set(\"campsite_id\", jsonData.id);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"Test Campsite\",\n    \"longitude\":-79.6956012,\n    \"latitude\":43.3940031\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{campsite-catalog-service-url}}/campsite",
+							"host": [
+								"{{campsite-catalog-service-url}}"
+							],
+							"path": [
+								"campsite"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FindCampsite",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8081/user/{{USER_ID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"user",
+								"{{USER_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteCampsite",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "973dc064-add9-43c9-a152-80828e85b4e3",
+								"exec": [
+									"pm.test(\"Status OK\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{campsite-catalog-service-url}}/campsite/{{campsite_id}}",
+							"host": [
+								"{{campsite-catalog-service-url}}"
+							],
+							"path": [
+								"campsite",
+								"{{campsite_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FindAllCampsites",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway-url}}/api/campsite/all/0/10",
+							"host": [
+								"{{gateway-url}}"
+							],
+							"path": [
+								"api",
+								"campsite",
+								"all",
+								"0",
+								"10"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Gateway",
+			"item": [
+				{
+					"name": "FindAllCampsites",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway-url}}/api/campsite/all/0/10",
+							"host": [
+								"{{gateway-url}}"
+							],
+							"path": [
+								"api",
+								"campsite",
+								"all",
+								"0",
+								"10"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FindAllReservations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d2e3aeee-9a04-490a-b162-726f519c87ab",
+								"exec": [
+									"pm.test(\"Status Created\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"response must be valid and have a body\", function () {",
+									"     pm.response.to.be.withBody;",
+									"     pm.response.to.be.json;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"Test Campsite\",\n    \"longitude\":-79.6956012,\n    \"latitude\":43.3940031\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway-url}}/reservation/availability/{{campsite_id}}",
+							"host": [
+								"{{gateway-url}}"
+							],
+							"path": [
+								"reservation",
+								"availability",
+								"{{campsite_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateReservation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b10a410e-9b08-472d-a0ef-4a91b71ac278",
+								"exec": [
+									"pm.test(\"Status Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userFullName\":\"Test User\",\n    \"userEmail\":\"test@test.com\",\n    \"campsiteId\":\"{{campsite_id}}\",\n    \"arrivalDate\":\"2020-09-10T17:52:46+00:00\",\n    \"departureDate\":\"2020-09-12T17:52:46+00:00\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway-url}}/createReservation",
+							"host": [
+								"{{gateway-url}}"
+							],
+							"path": [
+								"createReservation"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Reservation",
+			"item": [
+				{
+					"name": "FindAllReservations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e128ae6b-491e-46f5-b4a3-9c7fd6942b14",
+								"exec": [
+									"pm.test(\"Status Created\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"response must be valid and have a body\", function () {",
+									"     pm.response.to.be.withBody;",
+									"     pm.response.to.be.json;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"Test Campsite\",\n    \"longitude\":-79.6956012,\n    \"latitude\":43.3940031\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{reservation-service-url}}/reservation/availability/{{campsite_id}}",
+							"host": [
+								"{{reservation-service-url}}"
+							],
+							"path": [
+								"reservation",
+								"availability",
+								"{{campsite_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "1de8488d-ae58-4e62-be23-736f431acc2e",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "3f61e160-1598-4e68-a958-2d34b12134b0",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "1214e5f4-b0c0-459e-85a2-938de7392e97",
+			"key": "USER_EMAIL",
+			"value": "jorgegfx@gmail.com"
+		},
+		{
+			"id": "a178285c-420d-4735-9d67-b17436ff002b",
+			"key": "user-service-url",
+			"value": "http://localhost:8081"
+		},
+		{
+			"id": "ac5f2a46-7ab8-4214-881e-4d5526b6b16f",
+			"key": "campsite-catalog-service-url",
+			"value": "http://localhost:8082"
+		},
+		{
+			"id": "7a9d6a75-4d08-4804-a1b2-496a4add2f07",
+			"key": "reservation-service-url",
+			"value": "http://localhost:8083"
+		},
+		{
+			"id": "751386ba-baed-4946-9a18-63af811e791b",
+			"key": "gateway-url",
+			"value": "http://localhost:8084"
+		}
+	],
+	"protocolProfileBehavior": {}
+}
