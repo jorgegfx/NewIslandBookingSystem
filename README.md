@@ -139,20 +139,124 @@ please also check test cases on [reservation-service tests](reservation-service/
 
 ## System Requirements
 
-1. The users will need to find out when the campsite is available. 
-
-the reservation service has implemented this query that 
-
-So the system should expose an API to provide information of the
+1. The users will need to find out when the campsite is available. So the system should expose an API to provide information of the
 availability of the campsite for a given date range with the default being 1 month.
+
+* the reservation service has implemented this query that having the campsite as parameter 
+    * GET /reservation/availability/{{campsite_id}}  
+    * GET /reservation/availability/{{campsite_id}}/{{startDate}}/{{endDate}} with startDate and endDate as parameters
+
 2. Provide an end point for reserving the campsite. The user will provide his/her email & full name at the time of reserving the campsite
 along with intended arrival date and departure date. Return a unique booking identifier back to the caller if the reservation is successful.
+    They are two ways to achieve this by web-sockets or with a http call will create the reservation.
+* Web Socket:
+    * ws://{{gateway-url}}/ws/reservations
+        * request:
+            {
+              "type": "create",
+              "userFullName": "Test User",
+              "userEmail": "test@test.com",
+              "campsiteId": "0aec7e63-e615-41a0-bff2-4fb1fb655a6e",
+              "arrivalDate": "2020-10-01T17:52:46+00:00",
+              "departureDate": "2020-10-02T17:52:46+00:00"
+            }
+        * successful response:
+            {
+              "referenceId": "b1b88c54-f160-4482-b31a-0e2e9302e647",
+              "status": "SUCCESS",
+              "errorMessage": null
+            }            
+* Http Post request :
+    http://{{gateway-url}}/createReservation
+        * request:
+                {
+                  "type": "create",
+                  "userFullName": "Test User",
+                  "userEmail": "test@test.com",
+                  "campsiteId": "0aec7e63-e615-41a0-bff2-4fb1fb655a6e",
+                  "arrivalDate": "2020-10-01T17:52:46+00:00",
+                  "departureDate": "2020-10-02T17:52:46+00:00"
+                }
+        * response will return a status pending confirmation can be implemented either email,
+         (java script requesting for updates many times up to update is received) or other similar mechanism.
+                
 3. The unique booking identifier can be used to modify or cancel the reservation later on. Provide appropriate end point(s) to allow
 modification/cancellation of an existing reservation
+
+* Update:
+    * Web Socket:
+        * ws://{{gateway-url}}/ws/reservations
+            * request:
+                {
+                  "type": "update",
+                  "id":"4d762cad-407f-4e45-9571-33effdcbb474",
+                  "userFullName": "Test User",
+                  "userEmail": "test@test.com",
+                  "campsiteId": "0aec7e63-e615-41a0-bff2-4fb1fb655a6e",
+                  "arrivalDate": "2020-10-01T17:52:46+00:00",
+                  "departureDate": "2020-10-02T17:52:46+00:00"
+                }
+            * successful response:
+                {
+                  "referenceId": "b1b88c54-f160-4482-b31a-0e2e9302e647",
+                  "status": "SUCCESS",
+                  "errorMessage": null
+                }            
+    * Http Patch request :
+        http://{{gateway-url}}/createReservation
+            * request:
+                    {
+                      "type": "update",
+                      "id":"4d762cad-407f-4e45-9571-33effdcbb474",
+                      "userFullName": "Test User",
+                      "userEmail": "test@test.com",
+                      "campsiteId": "0aec7e63-e615-41a0-bff2-4fb1fb655a6e",
+                      "arrivalDate": "2020-10-01T17:52:46+00:00",
+                      "departureDate": "2020-10-02T17:52:46+00:00"
+                    }
+                    
+* Cancel:
+    * Web Socket:
+        * ws://{{gateway-url}}/ws/reservations
+            * request:
+                {
+                  "type": "cancel",
+                  "id":"4d762cad-407f-4e45-9571-33effdcbb474",
+                  "campsiteId": "0aec7e63-e615-41a0-bff2-4fb1fb655a6e"
+                }
+            * successful response:
+                {
+                  "referenceId": "b1b88c54-f160-4482-b31a-0e2e9302e647",
+                  "status": "SUCCESS",
+                  "errorMessage": null
+                }            
+    * Http Delete request :
+        http://{{gateway-url}}/createReservation
+            * request:
+                    {
+                      "type": "cancel",
+                      "id":"4d762cad-407f-4e45-9571-33effdcbb474",
+                      "campsiteId": "0aec7e63-e615-41a0-bff2-4fb1fb655a6e"
+                    }                    
 4. Due to the popularity of the island, there is a high likelihood of multiple users attempting to reserve the campsite for the same/overlapping
 date(s). Demonstrate with appropriate test cases that the system can gracefully handle concurrent requests to reserve the campsite.
+
+The system has been implemented using kafka as message bus 
+and the selected key for the message will be campsite id therefore all 
+messages that belong to the same key will be processed in order, 
+the database can be use as a distributed locking control but will 
+impact greatly since kafka can be easier scale than a rdbms database, 
+as another measure the system checks if there will be any double booking   
+
 5. Provide appropriate error messages to the caller to indicate the error cases.
+
+The Web socket replies with an error message and a status as a response of any request
+
 6. In general, the system should be able to handle large volume of requests for getting the campsite availability.
+
+On memory cache has been implemented to help the system and database performance, 
+also partitioning would help if historic information is kept.   
+
 7. There are no restrictions on how reservations are stored as as long as system constraints are not violated.
 
     
