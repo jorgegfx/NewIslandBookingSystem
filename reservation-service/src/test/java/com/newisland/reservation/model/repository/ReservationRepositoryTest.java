@@ -36,6 +36,7 @@ class ReservationRepositoryTest {
         Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
+                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).
@@ -51,6 +52,7 @@ class ReservationRepositoryTest {
         Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
+                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).
@@ -73,6 +75,7 @@ class ReservationRepositoryTest {
         Instant departureDate = arrivalDate.plus(3, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
+                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).
@@ -94,6 +97,7 @@ class ReservationRepositoryTest {
         Instant departureDate = arrivalDate.plus(3, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
+                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).

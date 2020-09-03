@@ -24,11 +24,15 @@ public class Reservation {
     private UUID id;
 
     @Type(type = "uuid-char")
-    @Column(length = 36)
+    @Column(length = 36, nullable = false)
+    private UUID referenceId;
+
+    @Type(type = "uuid-char")
+    @Column(length = 36, nullable = false)
     private UUID userId;
 
     @Type(type = "uuid-char")
-    @Column(length = 36)
+    @Column(length = 36, nullable = false)
     private UUID campsiteId;
 
     @Enumerated(EnumType.STRING)

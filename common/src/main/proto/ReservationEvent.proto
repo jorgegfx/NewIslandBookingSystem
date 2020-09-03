@@ -1,0 +1,46 @@
+syntax = "proto3";
+package com.newisland.common.messages.event;
+import "google/protobuf/timestamp.proto";
+
+message ReservationEvent {
+  enum ActionType{
+    CREATED = 0;
+    UPDATED = 1;
+    CANCELLED = 2;
+  }
+  ActionType action_type = 3;
+
+  oneof event{
+    ReservationCreatedEvent created = 4;
+    ReservationUpdatedEvent updated = 5;
+    ReservationCancelledEvent cancelled = 6;
+  }
+
+  enum ResultType{
+    SUCCESS = 0;
+    ERROR = 1;
+  }
+  ResultType result_type = 7;
+  string errorMessage = 8;
+}
+
+message ReservationCreatedEvent{
+  string id = 1;
+  string user_full_name = 2;
+  string user_email = 3;
+  string campsite_id = 4;
+  google.protobuf.Timestamp arrival_date = 5;
+  google.protobuf.Timestamp departure_date = 6;
+  string referenceId = 7;
+}
+
+message ReservationUpdatedEvent{
+  string id = 1;
+  string campsite_id = 2;
+  google.protobuf.Timestamp arrival_date = 3;
+  google.protobuf.Timestamp departure_date = 4;
+}
+
+message ReservationCancelledEvent{
+  string id = 1;
+}

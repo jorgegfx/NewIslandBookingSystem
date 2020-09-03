@@ -1,5 +1,6 @@
 package com.newisland.gateway.websocket;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -10,6 +11,9 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 @Configuration
 @EnableWebSocket
 public class WebSocketConfiguration implements WebSocketConfigurer {
+    @Autowired
+    private ReservationWebSocketHandler reservationWebSocketHandler;
+
     @Bean
     public ServletServerContainerFactoryBean createWebSocketContainer() {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
@@ -18,7 +22,7 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new ReservationWebSocketHandler(), "/socket").
+        registry.addHandler(reservationWebSocketHandler, "/socket").
                 setAllowedOrigins("*");
     }
 }
