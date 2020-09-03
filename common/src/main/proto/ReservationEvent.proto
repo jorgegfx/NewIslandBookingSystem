@@ -39,8 +39,10 @@ message ReservationUpdatedEvent{
   string campsite_id = 2;
   google.protobuf.Timestamp arrival_date = 3;
   google.protobuf.Timestamp departure_date = 4;
+  string referenceId = 5;
 }
 
 message ReservationCancelledEvent{
   string id = 1;
+  string referenceId = 2;
 }

@@ -15,7 +15,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-import static com.newisland.common.messages.command.ReservationCommandOuterClass.ReservationCommand.ActionType.*;
 /**
  * Fire and forget controller in the case that websockets are not enabled
  */
