@@ -194,13 +194,11 @@ modification/cancellation of an existing reservation
             * request:
             ```
                 {
-                  "type": "update",
-                  "id":"4d762cad-407f-4e45-9571-33effdcbb474",
-                  "userFullName": "Test User",
-                  "userEmail": "test@test.com",
-                  "campsiteId": "0aec7e63-e615-41a0-bff2-4fb1fb655a6e",
-                  "arrivalDate": "2020-10-01T17:52:46+00:00",
-                  "departureDate": "2020-10-02T17:52:46+00:00"
+                  "type":"update",
+                  "id":"b8cb5b93-cd60-488d-b610-adc0061c3083",
+                  "campsiteId":"0aec7e63-e615-41a0-bff2-4fb1fb655a6e",
+                  "arrivalDate":"2020-10-01T17:52:46+00:00",
+                  "departureDate":"2020-10-02T17:52:46+00:00"
                 }
              ```
             * Successful response:
@@ -211,20 +209,19 @@ modification/cancellation of an existing reservation
                   "errorMessage": null
                 }
                 ```            
-    * Http Patch request : http://{{gateway-url}}/createReservation          
+    * Http Patch: URL http://{{gateway-url}}/createReservation          
             * Request:
                 ```
-                    {
-                      "type": "update",
-                      "id":"4d762cad-407f-4e45-9571-33effdcbb474",
-                      "userFullName": "Test User",
-                      "userEmail": "test@test.com",
-                      "campsiteId": "0aec7e63-e615-41a0-bff2-4fb1fb655a6e",
-                      "arrivalDate": "2020-10-01T17:52:46+00:00",
-                      "departureDate": "2020-10-02T17:52:46+00:00"
-                    }
-               ```       
-            * the response will give a correlationId that can be use to query the reservation details or error using 
+                {
+                    "type":"update",
+                    "id":"b8cb5b93-cd60-488d-b610-adc0061c3083",
+                    "campsiteId":"0aec7e63-e615-41a0-bff2-4fb1fb655a6e",
+                    "arrivalDate":"2020-10-01T17:52:46+00:00",
+                    "departureDate":"2020-10-02T17:52:46+00:00"
+                }
+                ```
+                
+            The response will give a correlationId that can be use to query the reservation details or error using 
                     /GET {{gateway-url}}/reservation/status/{{correlationId}}        
                     
 * Cancel:
