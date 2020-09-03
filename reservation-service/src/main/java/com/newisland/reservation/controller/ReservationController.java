@@ -60,7 +60,7 @@ public class ReservationController {
         }
     }
 
-    @GetMapping("/availability/{campsiteId}/{timeZone}/{startDate}/{endDate}")
+    @GetMapping("/availability/{campsiteId}/{startDate}/{endDate}")
     public Flux<ReservationDto> getAvailabilityByCampsiteBetween(@PathVariable String campsiteId,
            @PathVariable("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime startDate,
            @PathVariable("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime endDate) {
