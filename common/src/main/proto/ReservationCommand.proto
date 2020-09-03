@@ -22,6 +22,7 @@ message CreateReservationCommand{
   string campsite_id = 3;
   google.protobuf.Timestamp arrival_date = 4;
   google.protobuf.Timestamp departure_date = 5;
+  string referenceId = 6;
 }
 
 message UpdateReservationCommand{
