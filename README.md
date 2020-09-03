@@ -267,6 +267,7 @@ date(s). Demonstrate with appropriate test cases that the system can gracefully 
 5. Provide appropriate error messages to the caller to indicate the error cases.
 
     * The Web socket replies with an error message and a status as a response of any request
+    * The rest api provides a way to retrieve the confirmation of a reservation 
 
 6. In general, the system should be able to handle large volume of requests for getting the campsite availability.
 
