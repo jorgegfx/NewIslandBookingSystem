@@ -5,6 +5,8 @@ import com.newisland.common.messages.command.ReservationCommandOuterClass;
 import com.newisland.common.messages.event.ReservationEventOuterClass;
 import com.newisland.reservation.client.UserServiceClient;
 import com.newisland.reservation.model.entity.Reservation;
+import com.newisland.reservation.model.entity.ReservationTransaction;
+import com.newisland.reservation.model.entity.ReservationTransactionStatus;
 import com.newisland.reservation.model.exception.ReservationException;
 import com.newisland.reservation.service.ReservationService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.newisland.common.messages.event.ReservationEventOuterClass.ReservationEvent.ActionType.CREATED;
+import static com.newisland.common.messages.event.ReservationEventOuterClass.ReservationEvent.ActionType.*;
 import static com.newisland.common.messages.event.ReservationEventOuterClass.ReservationEvent.ResultType.ERROR;
 import static com.newisland.common.messages.event.ReservationEventOuterClass.ReservationEvent.ResultType.SUCCESS;
 
@@ -46,8 +48,21 @@ public class ReservationCommandListener {
         this.userServiceClient = userServiceClient;
     }
 
+    private void publishError(UUID correlationId,
+                              String campsiteId,
+                              ReservationEventOuterClass.ReservationEvent event,
+                              Throwable ex){
+        kafkaTemplate.send(reservationEventsTopic,campsiteId,event);
+        reservationService.save(ReservationTransaction.builder().
+                correlationId(correlationId).
+                status(ReservationTransactionStatus.ERROR).
+                errorMessage(ex.getMessage().substring(0,255)).
+                build());
+    }
+
     @CacheEvict(cacheNames="campsiteAvailability", key = "#create.campsiteId")
-    private void onCreate(ReservationCommandOuterClass.CreateReservationCommand create){
+    private void onCreate(ReservationCommandOuterClass.ReservationCommand cmd){
+        ReservationCommandOuterClass.CreateReservationCommand create = cmd.getCreate();
         UUID userId = userServiceClient.createUser(create.getUserEmail(), create.getUserFullName());
         Reservation reservation = Reservation.builder().
                 campsiteId(UUID.fromString(create.getCampsiteId())).
@@ -57,34 +72,38 @@ public class ReservationCommandListener {
                 build();
         ReservationEventOuterClass.ReservationCreatedEvent createdEvent =
                 ReservationEventOuterClass.ReservationCreatedEvent.newBuilder().
-                        setReferenceId(create.getReferenceId()).build();
+                        build();
+        UUID correlationId = UUID.fromString(cmd.getCorrelationId());
         try {
-            reservationService.save(reservation);
+            reservationService.save(reservation,correlationId);
             ReservationEventOuterClass.ReservationEvent event =
                     ReservationEventOuterClass.ReservationEvent.newBuilder().
+                            setCorrelationId(cmd.getCorrelationId()).
                             setActionType(CREATED).
                             setResultType(SUCCESS).
                             setCreated(createdEvent).build();
             kafkaTemplate.send(reservationEventsTopic,create.getCampsiteId(),event);
         }catch (ReservationException ex){
+            log.error("Error",ex);
             ReservationEventOuterClass.ReservationEvent event =
                     ReservationEventOuterClass.ReservationEvent.newBuilder().
+                            setCorrelationId(cmd.getCorrelationId()).
                             setActionType(CREATED).
                             setResultType(ERROR).
                             setErrorMessage(ex.getMessage()).
                             setCreated(createdEvent).build();
-            kafkaTemplate.send(reservationEventsTopic,create.getCampsiteId(),event);
-            log.error("Error",ex);
+            publishError(correlationId,create.getCampsiteId(),event,ex);
         }
     }
 
     @CacheEvict(cacheNames="campsiteAvailability", key = "#create.campsiteId")
-    private void onUpdate(ReservationCommandOuterClass.UpdateReservationCommand update){
+    private void onUpdate(ReservationCommandOuterClass.ReservationCommand cmd){
+        ReservationCommandOuterClass.UpdateReservationCommand update = cmd.getUpdate();
         ReservationEventOuterClass.ReservationUpdatedEvent updatedEvent =
                 ReservationEventOuterClass.ReservationUpdatedEvent.newBuilder().
                         setId(update.getId()).
-                        setReferenceId(update.getReferenceId()).
                         build();
+        UUID correlationId = UUID.fromString(cmd.getCorrelationId());
         try {
             Reservation reservation = Reservation.builder().
                     id(UUID.fromString(update.getId())).
@@ -92,37 +111,41 @@ public class ReservationCommandListener {
                     arrivalDate(TimeUtils.convertToInstant(update.getArrivalDate())).
                     departureDate(TimeUtils.convertToInstant(update.getDepartureDate())).
                     build();
-            reservationService.update(reservation);
+            reservationService.update(reservation,correlationId);
             ReservationEventOuterClass.ReservationEvent event =
                     ReservationEventOuterClass.ReservationEvent.newBuilder().
-                            setActionType(CREATED).
+                            setCorrelationId(cmd.getCorrelationId()).
+                            setActionType(UPDATED).
                             setResultType(SUCCESS).
                             setUpdated(updatedEvent).build();
             kafkaTemplate.send(reservationEventsTopic, update.getCampsiteId(), event);
         }catch (ReservationException ex){
+            log.error("Error",ex);
             ReservationEventOuterClass.ReservationEvent event =
                     ReservationEventOuterClass.ReservationEvent.newBuilder().
-                            setActionType(CREATED).
+                            setCorrelationId(cmd.getCorrelationId()).
+                            setActionType(UPDATED).
                             setResultType(ERROR).
                             setErrorMessage(ex.getMessage()).
                             setUpdated(updatedEvent).build();
-            kafkaTemplate.send(reservationEventsTopic,update.getCampsiteId(),event);
-            log.error("Error",ex);
+            publishError(correlationId,update.getCampsiteId(),event,ex);
         }
     }
 
     @CacheEvict(cacheNames="campsiteAvailability", key = "#create.campsiteId")
-    private void onCancel(ReservationCommandOuterClass.CancelReservationCommand cancel){
+    private void onCancel(ReservationCommandOuterClass.ReservationCommand cmd){
+        ReservationCommandOuterClass.CancelReservationCommand cancel = cmd.getCancel();
         ReservationEventOuterClass.ReservationCancelledEvent cancelledEvent =
                 ReservationEventOuterClass.ReservationCancelledEvent.newBuilder().
                         setId(cancel.getId()).
-                        setReferenceId(cancel.getReferenceId()).
                         build();
-        Optional<Reservation> res = reservationService.cancel(UUID.fromString(cancel.getId()));
+        Optional<Reservation> res = reservationService.cancel(UUID.fromString(cancel.getId()),
+                UUID.fromString(cmd.getCorrelationId()));
         res.ifPresent(reservation -> {
             ReservationEventOuterClass.ReservationEvent event =
                     ReservationEventOuterClass.ReservationEvent.newBuilder().
-                            setActionType(CREATED).
+                            setCorrelationId(cmd.getCorrelationId()).
+                            setActionType(CANCELLED).
                             setResultType(SUCCESS).
                             setCancelled(cancelledEvent).build();
             kafkaTemplate.send(reservationEventsTopic,reservation.getCampsiteId().toString(),event);
@@ -131,17 +154,17 @@ public class ReservationCommandListener {
 
     @KafkaListener(topics = "${reservation-commands-topic}", groupId = "ReservationCommandsConsumerGroup")
     public void consume(ConsumerRecord<String, ReservationCommandOuterClass.ReservationCommand> message) {
-        log.debug(String.format("Consumed message -> %s", message.key()));
         ReservationCommandOuterClass.ReservationCommand cmd =  message.value();
+        log.info(String.format("Consumed message -> %s", cmd));
         try {
             switch (cmd.getActionType()){
-                case CREATE: this.onCreate(cmd.getCreate());break;
-                case UPDATE: this.onUpdate(cmd.getUpdate());break;
-                case CANCEL: this.onCancel(cmd.getCancel());
+                case CREATE: this.onCreate(cmd);break;
+                case UPDATE: this.onUpdate(cmd);break;
+                case CANCEL: this.onCancel(cmd);
             }
         }catch (Exception ex){
             log.error("Error processing message ...",ex);
-            //Error handling on a error topic or other mechanism
+            //Error handling on a error topic or other mechanism that will allow reprocessing
         }
     }
 }

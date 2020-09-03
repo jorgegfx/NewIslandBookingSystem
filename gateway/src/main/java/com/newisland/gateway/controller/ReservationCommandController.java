@@ -26,39 +26,51 @@ public class ReservationCommandController {
 
     @DeleteMapping("/cancelReservation/{campsiteId}/{id}")
     @ResponseStatus(code = HttpStatus.OK)
-    public Mono<Void> cancelReservation(@PathVariable String campsiteId, @PathVariable String id){
+    public Mono<ReservationResponse> cancelReservation(@PathVariable String campsiteId, @PathVariable String id){
         try {
+            UUID correlationId = UUID.randomUUID();
             CancelReservationRequest cancelReservationRequest = new CancelReservationRequest();
             cancelReservationRequest.setId(id);
             cancelReservationRequest.setCampsiteId(campsiteId);
-            kafkaTemplate.send(reservationTopic, campsiteId, cancelReservationRequest.toProtobuf());
+            kafkaTemplate.send(reservationTopic, campsiteId,
+                    cancelReservationRequest.toProtobuf(correlationId.toString()));
+            return Mono.just(ReservationResponse.builder().
+                    correlationId(correlationId).
+                    status(ReservationStatus.PENDING).build());
         }catch (Exception ex){
-            log.error("Error canceling reservation",ex);
+            String errorMessage = "Error cancelling reservation";
+            log.error(errorMessage,ex);
+            return Mono.error(new IllegalStateException(errorMessage));
         }
-        return Mono.empty().then();
     }
 
     @PatchMapping("/updateReservation/{id}")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public Mono<Void> updateReservation(@PathVariable String id,@RequestBody UpdateReservationRequest updateReservationRequest){
+    public Mono<ReservationResponse> updateReservation(@PathVariable String id,
+                                                       @RequestBody UpdateReservationRequest updateReservationRequest){
         try {
+            UUID correlationId = UUID.randomUUID();
             kafkaTemplate.send(reservationTopic, updateReservationRequest.getCampsiteId(),
-                    updateReservationRequest.toProtobuf(id));
+                    updateReservationRequest.toProtobuf(id,correlationId.toString()));
+            return Mono.just(ReservationResponse.builder().
+                    correlationId(correlationId).
+                    status(ReservationStatus.PENDING).build());
         }catch (Exception ex){
-            log.error("Error updating reservation",ex);
+            String errorMessage = "Error updating reservation";
+            log.error(errorMessage,ex);
+            return Mono.error(new IllegalStateException(errorMessage));
         }
-        return Mono.empty().then();
     }
 
     @PostMapping("/createReservation")
     @ResponseStatus(code = HttpStatus.CREATED)
     public Mono<ReservationResponse> createReservation(@RequestBody CreateReservationRequest createReservationRequest) {
         try {
-            UUID referenceId = UUID.randomUUID();
+            UUID correlationId = UUID.randomUUID();
             kafkaTemplate.send(reservationTopic, createReservationRequest.getCampsiteId(),
-                    createReservationRequest.toProtobuf(referenceId));
+                    createReservationRequest.toProtobuf(correlationId));
             return Mono.just(ReservationResponse.builder().
-                    referenceId(referenceId).
+                    correlationId(correlationId).
                     status(ReservationStatus.PENDING).build());
         }catch (Exception ex){
             String errorMessage = "Error creating reservation";

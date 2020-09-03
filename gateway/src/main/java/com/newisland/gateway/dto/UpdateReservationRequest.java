@@ -22,7 +22,7 @@ public class UpdateReservationRequest extends ReservationRequest{
         this.type = RequestType.UPDATE;
     }
 
-    public ReservationCommandOuterClass.ReservationCommand toProtobuf(String id){
+    public ReservationCommandOuterClass.ReservationCommand toProtobuf(String id,String correlationId){
         ReservationCommandOuterClass.UpdateReservationCommand update =
                 ReservationCommandOuterClass.UpdateReservationCommand.newBuilder().
                         setId(id).
@@ -32,11 +32,14 @@ public class UpdateReservationRequest extends ReservationRequest{
                         build();
         ReservationCommandOuterClass.ReservationCommand cmd =
                 ReservationCommandOuterClass.ReservationCommand.newBuilder().
-                        setActionType(UPDATE).setUpdate(update).build();
+                        setActionType(UPDATE).
+                        setCorrelationId(correlationId).
+                        setUpdate(update).
+                        build();
         return cmd;
     }
 
-    public ReservationCommandOuterClass.ReservationCommand toProtobuf(){
-        return toProtobuf(this.id);
+    public ReservationCommandOuterClass.ReservationCommand toProtobuf(String correlationId){
+        return toProtobuf(this.id,correlationId);
     }
 }

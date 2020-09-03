@@ -22,6 +22,7 @@ message ReservationEvent {
   }
   ResultType result_type = 7;
   string errorMessage = 8;
+  string correlationId = 9;
 }
 
 message ReservationCreatedEvent{
@@ -31,7 +32,6 @@ message ReservationCreatedEvent{
   string campsite_id = 4;
   google.protobuf.Timestamp arrival_date = 5;
   google.protobuf.Timestamp departure_date = 6;
-  string referenceId = 7;
 }
 
 message ReservationUpdatedEvent{
@@ -39,10 +39,8 @@ message ReservationUpdatedEvent{
   string campsite_id = 2;
   google.protobuf.Timestamp arrival_date = 3;
   google.protobuf.Timestamp departure_date = 4;
-  string referenceId = 5;
 }
 
 message ReservationCancelledEvent{
   string id = 1;
-  string referenceId = 2;
 }

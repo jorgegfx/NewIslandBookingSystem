@@ -9,7 +9,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = CreateReservationRequest.class, name = "create"),
-        @JsonSubTypes.Type(value = UpdateReservationRequest.class, name = "update")
+        @JsonSubTypes.Type(value = UpdateReservationRequest.class, name = "update"),
+        @JsonSubTypes.Type(value = CancelReservationRequest.class, name = "cancel")
 })
 public abstract class ReservationRequest {
 

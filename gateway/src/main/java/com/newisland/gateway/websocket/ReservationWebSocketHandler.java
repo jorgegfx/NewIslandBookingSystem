@@ -66,32 +66,35 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
         return mapper;
     }
 
-    public void onCreate(ReservationEventOuterClass.ReservationEvent event){
-        ReservationEventOuterClass.ReservationCreatedEvent reservationCreatedEvent = event.getCreated();
-        Optional<ReservationResponse> res = Optional.empty();
+    private Optional<ReservationResponse> createResponse(UUID correlationId,
+                                                         ReservationEventOuterClass.ReservationEvent event){
+
         switch (event.getResultType()){
             case ERROR:
-                res = Optional.of(ReservationResponse.builder().
-                        referenceId(UUID.fromString(reservationCreatedEvent.getReferenceId())).
+                return Optional.of(ReservationResponse.builder().
+                        correlationId(correlationId).
                         status(ReservationStatus.ERROR).
                         errorMessage(Optional.of(event.getErrorMessage())).
                         build());
-                break;
             case SUCCESS:
-                res = Optional.of(ReservationResponse.builder().
-                        referenceId(UUID.fromString(reservationCreatedEvent.getReferenceId())).
+                return Optional.of(ReservationResponse.builder().
+                        correlationId(correlationId).
                         status(ReservationStatus.SUCCESS).
                         build());
-                break;
         }
+        return Optional.empty();
+    }
+
+    public void onCreate(ReservationEventOuterClass.ReservationEvent event){
+        UUID correlationId = UUID.fromString(event.getCorrelationId());
+        Optional<ReservationResponse> res = createResponse(correlationId,event);
         res.ifPresent(response->{
             try {
                 String json = objectMapper.writeValueAsString(response);
-                UUID refId = UUID.fromString(reservationCreatedEvent.getReferenceId());
-                if(createRequestLocksMap.containsKey(refId)) {
-                    createResponseMap.put(refId,json);
-                    createRequestLocksMap.get(refId).countDown();
-                    createRequestLocksMap.remove(refId);
+                if(createRequestLocksMap.containsKey(correlationId)) {
+                    createResponseMap.put(correlationId,json);
+                    createRequestLocksMap.get(correlationId).countDown();
+                    createRequestLocksMap.remove(correlationId);
                 }
             }catch (Exception ex){
                 log.error("Error",ex);
@@ -100,31 +103,18 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
     }
 
     public void onUpdate(ReservationEventOuterClass.ReservationEvent event){
-        ReservationEventOuterClass.ReservationUpdatedEvent reservationUpdatedEvent = event.getUpdated();
-        Optional<ReservationResponse> res = Optional.empty();
-        switch (event.getResultType()){
-            case ERROR:
-                res = Optional.of(ReservationResponse.builder().
-                        referenceId(UUID.fromString(reservationUpdatedEvent.getReferenceId())).
-                        status(ReservationStatus.ERROR).
-                        errorMessage(Optional.of(event.getErrorMessage())).
-                        build());
-                break;
-            case SUCCESS:
-                res = Optional.of(ReservationResponse.builder().
-                        referenceId(UUID.fromString(reservationUpdatedEvent.getReferenceId())).
-                        status(ReservationStatus.SUCCESS).
-                        build());
-                break;
-        }
+        UUID correlationId = UUID.fromString(event.getCorrelationId());
+        Optional<ReservationResponse> res = createResponse(correlationId,event);
         res.ifPresent(response-> {
             try {
                 String json = objectMapper.writeValueAsString(response);
-                UUID refId = UUID.fromString(reservationUpdatedEvent.getReferenceId());
-                if(updateRequestLocksMap.containsKey(refId)) {
-                    updateResponseMap.put(refId,json);
-                    updateRequestLocksMap.get(refId).countDown();
-                    updateRequestLocksMap.remove(refId);
+                if(updateRequestLocksMap.containsKey(correlationId)) {
+                    updateResponseMap.put(correlationId,json);
+                    log.info("releasing:"+correlationId);
+                    updateRequestLocksMap.get(correlationId).countDown();
+                    updateRequestLocksMap.remove(correlationId);
+                }else{
+                    log.info("No lock for :"+correlationId);
                 }
             } catch (Exception ex) {
                 log.error("Error", ex);
@@ -132,32 +122,19 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
         });
     }
 
+
+
     public void onCancel(ReservationEventOuterClass.ReservationEvent event){
+        UUID correlationId = UUID.fromString(event.getCorrelationId());
         ReservationEventOuterClass.ReservationCancelledEvent reservationCancelledEvent = event.getCancelled();
-        Optional<ReservationResponse> res = Optional.empty();
-        switch (event.getResultType()){
-            case ERROR:
-                res = Optional.of(ReservationResponse.builder().
-                        referenceId(UUID.fromString(reservationCancelledEvent.getReferenceId())).
-                        status(ReservationStatus.ERROR).
-                        errorMessage(Optional.of(event.getErrorMessage())).
-                        build());
-                break;
-            case SUCCESS:
-                res = Optional.of(ReservationResponse.builder().
-                        referenceId(UUID.fromString(reservationCancelledEvent.getReferenceId())).
-                        status(ReservationStatus.SUCCESS).
-                        build());
-                break;
-        }
+        Optional<ReservationResponse> res = createResponse(correlationId,event);
         res.ifPresent(response-> {
             try {
                 String json = objectMapper.writeValueAsString(response);
-                UUID refId = UUID.fromString(reservationCancelledEvent.getReferenceId());
-                if(cancelRequestLocksMap.containsKey(refId)) {
-                    cancelResponseMap.put(refId,json);
-                    cancelRequestLocksMap.get(refId).countDown();
-                    cancelRequestLocksMap.remove(refId);
+                if(cancelRequestLocksMap.containsKey(correlationId)) {
+                    cancelResponseMap.put(correlationId,json);
+                    cancelRequestLocksMap.get(correlationId).countDown();
+                    cancelRequestLocksMap.remove(correlationId);
                 }
             } catch (Exception ex) {
                 log.error("Error", ex);
@@ -168,6 +145,7 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
     @KafkaListener(topics = "${reservation-events-topic}", groupId = "${reservation.events.consumer.group}")
     public void consume(ConsumerRecord<String, ReservationEventOuterClass.ReservationEvent> message){
         ReservationEventOuterClass.ReservationEvent event = message.value();
+        log.info("New Message:"+event);
         switch (event.getActionType()){
             case CREATED: onCreate(event);break;
             case UPDATED: onUpdate(event);break;
@@ -176,34 +154,34 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
     }
 
     public UUID submitCreate(CreateReservationRequest createReservationRequest){
-        UUID referenceId = UUID.randomUUID();
+        UUID correlationId = UUID.randomUUID();
         kafkaTemplate.send(reservationCommandsTopic, createReservationRequest.getCampsiteId(),
-                createReservationRequest.toProtobuf(referenceId));
-        createRequestLocksMap.put(referenceId,new CountDownLatch(1));
-        return referenceId;
+                createReservationRequest.toProtobuf(correlationId));
+        createRequestLocksMap.put(correlationId,new CountDownLatch(1));
+        return correlationId;
     }
 
     public UUID submitUpdate(UpdateReservationRequest updateReservationRequest){
-        UUID referenceId = UUID.randomUUID();
+        UUID correlationId = UUID.randomUUID();
         kafkaTemplate.send(reservationCommandsTopic, updateReservationRequest.getCampsiteId(),
-                updateReservationRequest.toProtobuf());
-        updateRequestLocksMap.put(referenceId, new CountDownLatch(1));
-        return referenceId;
+                updateReservationRequest.toProtobuf(correlationId.toString()));
+        updateRequestLocksMap.put(correlationId, new CountDownLatch(1));
+        return correlationId;
     }
 
     public UUID submitCancel(CancelReservationRequest cancelReservationRequest){
-        UUID referenceId = UUID.randomUUID();
+        UUID correlationId = UUID.randomUUID();
         kafkaTemplate.send(reservationCommandsTopic, cancelReservationRequest.getCampsiteId(),
-                cancelReservationRequest.toProtobuf());
-        UUID id = UUID.fromString(cancelReservationRequest.getId());
-        cancelRequestLocksMap.put(id,new CountDownLatch(1));
-        return referenceId;
+                cancelReservationRequest.toProtobuf(correlationId.toString()));
+        cancelRequestLocksMap.put(correlationId,new CountDownLatch(1));
+        return correlationId;
     }
 
     private WebSocketMessage createWebSocketMessage(UUID txId,
                                                     WebSocketSession webSocketSession,
                                                     Map<UUID,CountDownLatch> lockRequestMap,
                                                     Map<UUID,String> responseMap) throws InterruptedException {
+        log.info("Waiting for :"+txId);
         lockRequestMap.get(txId).await(timeOutMinutes, TimeUnit.MINUTES);
         WebSocketMessage webSocketMessage = webSocketSession.textMessage(responseMap.get(txId));
         responseMap.remove(txId);
@@ -212,7 +190,7 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
 
     private WebSocketMessage onReceive(String payload,WebSocketSession webSocketSession){
         try {
-            ReservationRequest reservationRequest = objectMapper.readValue(payload, CreateReservationRequest.class);
+            ReservationRequest reservationRequest = objectMapper.readValue(payload, ReservationRequest.class);
             switch (reservationRequest.getType()){
                 case CREATE:
                     UUID createTxId = submitCreate((CreateReservationRequest) reservationRequest);

@@ -349,6 +349,58 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "FindByCorrelationId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f6806cfa-d0cf-497f-b4dc-f75b60b1bd8a",
+								"exec": [
+									"pm.test(\"Status Created\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"response must be valid and have a body\", function () {",
+									"     pm.response.to.be.withBody;",
+									"     pm.response.to.be.json;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"Test Campsite\",\n    \"longitude\":-79.6956012,\n    \"latitude\":43.3940031\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway-url}}/reservation/status/3332b45f-f8b2-4d07-a8bf-c61b1feb7b55",
+							"host": [
+								"{{gateway-url}}"
+							],
+							"path": [
+								"reservation",
+								"status",
+								"3332b45f-f8b2-4d07-a8bf-c61b1feb7b55"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -363,6 +415,110 @@
 							"listen": "test",
 							"script": {
 								"id": "e128ae6b-491e-46f5-b4a3-9c7fd6942b14",
+								"exec": [
+									"pm.test(\"Status Created\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"response must be valid and have a body\", function () {",
+									"     pm.response.to.be.withBody;",
+									"     pm.response.to.be.json;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"Test Campsite\",\n    \"longitude\":-79.6956012,\n    \"latitude\":43.3940031\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{reservation-service-url}}/reservation/availability/{{campsite_id}}",
+							"host": [
+								"{{reservation-service-url}}"
+							],
+							"path": [
+								"reservation",
+								"availability",
+								"{{campsite_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FindByCorrelationId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "39f4ce00-c714-4b84-aadf-5af587dc2cf5",
+								"exec": [
+									"pm.test(\"Status Created\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"response must be valid and have a body\", function () {",
+									"     pm.response.to.be.withBody;",
+									"     pm.response.to.be.json;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"Test Campsite\",\n    \"longitude\":-79.6956012,\n    \"latitude\":43.3940031\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{reservation-service-url}}/reservation/availability/{{campsite_id}}",
+							"host": [
+								"{{reservation-service-url}}"
+							],
+							"path": [
+								"reservation",
+								"availability",
+								"{{campsite_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FindAllReservationsRange",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "09a849dc-6c2d-4e14-b87c-34ac8f8f102c",
 								"exec": [
 									"pm.test(\"Status Created\", function () {",
 									"    pm.response.to.have.status(200);",
@@ -436,27 +592,27 @@
 	],
 	"variable": [
 		{
-			"id": "1214e5f4-b0c0-459e-85a2-938de7392e97",
+			"id": "3c6bf89c-f5aa-4307-a457-b45b72e0a9cc",
 			"key": "USER_EMAIL",
 			"value": "jorgegfx@gmail.com"
 		},
 		{
-			"id": "a178285c-420d-4735-9d67-b17436ff002b",
+			"id": "f766cb38-3cdd-4262-944a-c4c596f9effc",
 			"key": "user-service-url",
 			"value": "http://localhost:8081"
 		},
 		{
-			"id": "ac5f2a46-7ab8-4214-881e-4d5526b6b16f",
+			"id": "6c4bec1a-beda-4def-8907-9cee7eb1ec71",
 			"key": "campsite-catalog-service-url",
 			"value": "http://localhost:8082"
 		},
 		{
-			"id": "7a9d6a75-4d08-4804-a1b2-496a4add2f07",
+			"id": "8cdc88af-7eb4-40eb-a50d-a76331c872c8",
 			"key": "reservation-service-url",
 			"value": "http://localhost:8083"
 		},
 		{
-			"id": "751386ba-baed-4946-9a18-63af811e791b",
+			"id": "2d11f0dc-587c-41f8-8221-4f293e8fb135",
 			"key": "gateway-url",
 			"value": "http://localhost:8084"
 		}

@@ -1,12 +1,12 @@
 package com.newisland.reservation.service;
 
 import com.newisland.reservation.model.ValidationResult;
-import com.newisland.reservation.model.entity.Reservation;
-import com.newisland.reservation.model.entity.ReservationStatus;
+import com.newisland.reservation.model.entity.*;
 import com.newisland.reservation.model.exception.AheadDaysReservationException;
 import com.newisland.reservation.model.exception.AlreadyBookedReservationException;
 import com.newisland.reservation.model.exception.PassMaxRangeReservationException;
 import com.newisland.reservation.model.repository.ReservationRepository;
+import com.newisland.reservation.model.repository.ReservationTransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -37,19 +37,29 @@ public class ReservationServiceImpl implements ReservationService {
     public ReservationServiceImpl(int maxAllowedDays,
                                   int minAllowedDaysAhead,
                                   int maxAllowedDaysAhead,
-                                  ReservationRepository reservationRepository) {
+                                  ReservationRepository reservationRepository,
+                                  ReservationTransactionRepository reservationTransactionRepository) {
         this.maxAllowedDays = maxAllowedDays;
         this.minAllowedDaysAhead = minAllowedDaysAhead;
         this.maxAllowedDaysAhead = maxAllowedDaysAhead;
         this.reservationRepository = reservationRepository;
+        this.reservationTransactionRepository = reservationTransactionRepository;
     }
 
     @Autowired
     private ReservationRepository reservationRepository;
 
+    @Autowired
+    private ReservationTransactionRepository reservationTransactionRepository;
+
     @Override
     public Optional<Reservation> findById(UUID id) {
         return reservationRepository.findById(id);
+    }
+
+    @Override
+    public Optional<ReservationTransaction> findByReservationTransactionByCorrelationId(UUID correlationId) {
+        return reservationTransactionRepository.findByCorrelationId(correlationId);
     }
 
     @Override
@@ -102,7 +112,7 @@ public class ReservationServiceImpl implements ReservationService {
         return ValidationResult.VALID;
     }
 
-    private Reservation trySaveRecord(Instant now,Reservation reservation, Optional<Reservation> existingRecord){
+    private Reservation trySaveRecord(Instant now,Reservation reservation, Optional<Reservation> existingRecord,UUID correlationId){
         switch (validate(now, reservation,existingRecord)){
             case VALID: reservation.setStatus(ReservationStatus.ACTIVE);
                 break;
@@ -118,24 +128,33 @@ public class ReservationServiceImpl implements ReservationService {
                         "The Reservation %s is passing the min(%d) or max(%d) allowed days ahead to booked",
                         reservation,minAllowedDaysAhead,maxAllowedDaysAhead));
         }
-        return reservationRepository.save(reservation);
+        ReservationTransactionType type = existingRecord.isPresent()?
+                ReservationTransactionType.UPDATE:ReservationTransactionType.CREATE;
+        Reservation newOrUpdateReservation = reservationRepository.save(reservation);
+        this.save(ReservationTransaction.builder().
+                correlationId(correlationId).
+                status(ReservationTransactionStatus.SUCCESS).
+                type(type).
+                reservation(newOrUpdateReservation).
+                build());
+        return newOrUpdateReservation;
     }
 
     @Override
-    public Reservation save(Reservation reservation) {
+    public Reservation save(Reservation reservation, UUID correlationId) {
         Instant now = Instant.now();
         reservation.setCreatedOn(now);
-        return trySaveRecord(now,reservation,Optional.empty());
+        return trySaveRecord(now,reservation,Optional.empty(),correlationId);
     }
 
     @Override
-    public Optional<Reservation> update(Reservation reservation) {
+    public Optional<Reservation> update(Reservation reservation, UUID correlationId) {
         Optional<Reservation> res = this.findById(reservation.getId()).map(existentReservation -> {
             Instant now = Instant.now();
             reservation.setUserId(existentReservation.getUserId());
             reservation.setCreatedOn(existentReservation.getCreatedOn());
             reservation.setUpdatedOn(now);
-            return trySaveRecord(now,reservation,Optional.of(existentReservation));
+            return trySaveRecord(now,reservation,Optional.of(existentReservation),correlationId);
         });
         if (res.isPresent() && res.get().getUpdatedOn() != null) {
             return res;
@@ -144,11 +163,24 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public Optional<Reservation> cancel(UUID id) {
+    public Optional<Reservation> cancel(UUID id, UUID correlationId) {
         return this.findById(id).map(existentReservation -> {
             existentReservation.setUpdatedOn(Instant.now());
             existentReservation.setStatus(ReservationStatus.CANCELLED);
-            return reservationRepository.save(existentReservation);
+            Reservation cancelledReservation = reservationRepository.save(existentReservation);
+            this.save(ReservationTransaction.builder().
+                    correlationId(correlationId).
+                    status(ReservationTransactionStatus.SUCCESS).
+                    type(ReservationTransactionType.CANCEL).
+                    reservation(cancelledReservation).
+                    build());
+            return cancelledReservation;
         });
+    }
+
+    @Override
+    public void save(ReservationTransaction reservationTransaction) {
+        reservationTransaction.setCreatedOn(Instant.now());
+        this.reservationTransactionRepository.save(reservationTransaction);
     }
 }

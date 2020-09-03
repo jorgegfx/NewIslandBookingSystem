@@ -23,10 +23,9 @@ public class CreateReservationRequest extends ReservationRequest{
         this.type = RequestType.CREATE;
     }
 
-    public ReservationCommandOuterClass.ReservationCommand toProtobuf(UUID referenceId){
+    public ReservationCommandOuterClass.ReservationCommand toProtobuf(UUID correlationId){
         ReservationCommandOuterClass.CreateReservationCommand create =
                 ReservationCommandOuterClass.CreateReservationCommand.newBuilder().
-                        setReferenceId(referenceId.toString()).
                         setCampsiteId(this.getCampsiteId()).
                         setUserEmail(this.getUserEmail()).
                         setUserFullName(this.getUserFullName()).
@@ -35,6 +34,7 @@ public class CreateReservationRequest extends ReservationRequest{
                         build();
         ReservationCommandOuterClass.ReservationCommand cmd =
                 ReservationCommandOuterClass.ReservationCommand.newBuilder().
+                        setCorrelationId(correlationId.toString()).
                         setActionType(CREATE).setCreate(create).build();
         return cmd;
     }

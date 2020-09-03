@@ -3,6 +3,7 @@ package com.newisland.reservation.controller;
 import com.newisland.reservation.dto.ReservationDto;
 import com.newisland.reservation.model.entity.Reservation;
 import com.newisland.reservation.service.ReservationService;
+import io.vavr.control.Either;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
@@ -19,6 +20,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -39,6 +41,30 @@ public class ReservationController {
         TimeZone userTimeZone = LocaleContextHolder.getTimeZone();
         return Mono.justOrEmpty(reservationService.
                 findById(UUID.fromString(id)).map(res->ReservationDto.fromDomain(res,userTimeZone)));
+    }
+
+    @GetMapping("/status/{correlationId}")
+    public Mono<ReservationDto> getReservationByCorrelationId(@PathVariable String correlationId){
+        TimeZone userTimeZone = LocaleContextHolder.getTimeZone();
+        Optional<Either<Throwable,ReservationDto>> value =
+                reservationService.findByReservationTransactionByCorrelationId(UUID.fromString(correlationId)).map(
+                reservationTransaction -> {
+                    if(reservationTransaction.getReservation()==null){
+                        Either.left(
+                                new IllegalStateException(reservationTransaction.getErrorMessage()));
+                    }
+                    return Either.right(ReservationDto.fromDomain(
+                            reservationTransaction.getReservation(),userTimeZone));
+                });
+        if(value.isPresent()){
+            Either<Throwable,ReservationDto> res = value.get();
+            if(res.isLeft()){
+                return Mono.error(res.getLeft());
+            }else{
+                return Mono.just(res.get());
+            }
+        }
+        return Mono.empty();
     }
 
 
