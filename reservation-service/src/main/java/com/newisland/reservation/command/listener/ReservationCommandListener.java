@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ public class ReservationCommandListener {
         this.userServiceClient = userServiceClient;
     }
 
+    @CacheEvict(cacheNames="campsiteAvailability", key = "#create.campsiteId")
     private void onCreate(ReservationCommandOuterClass.CreateReservationCommand create){
         UUID userId = userServiceClient.createUser(create.getUserEmail(), create.getUserFullName());
         Reservation reservation = Reservation.builder().
@@ -76,6 +78,7 @@ public class ReservationCommandListener {
         }
     }
 
+    @CacheEvict(cacheNames="campsiteAvailability", key = "#create.campsiteId")
     private void onUpdate(ReservationCommandOuterClass.UpdateReservationCommand update){
         ReservationEventOuterClass.ReservationUpdatedEvent updatedEvent =
                 ReservationEventOuterClass.ReservationUpdatedEvent.newBuilder().
@@ -108,6 +111,7 @@ public class ReservationCommandListener {
         }
     }
 
+    @CacheEvict(cacheNames="campsiteAvailability", key = "#create.campsiteId")
     private void onCancel(ReservationCommandOuterClass.CancelReservationCommand cancel){
         ReservationEventOuterClass.ReservationCancelledEvent cancelledEvent =
                 ReservationEventOuterClass.ReservationCancelledEvent.newBuilder().

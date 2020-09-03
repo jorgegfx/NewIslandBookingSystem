@@ -5,6 +5,7 @@ import com.newisland.reservation.model.entity.Reservation;
 import com.newisland.reservation.service.ReservationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,6 +43,7 @@ public class ReservationController {
 
 
     @GetMapping("/availability/{campsiteId}")
+    @CachePut(cacheNames="campsiteAvailability", key = "#campsiteId")
     public Flux<ReservationDto> getAvailabilityByCampsite(@PathVariable String campsiteId) {
         try {
             TimeZone userTimeZone = LocaleContextHolder.getTimeZone();
