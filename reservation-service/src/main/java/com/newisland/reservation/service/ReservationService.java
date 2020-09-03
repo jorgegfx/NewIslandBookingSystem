@@ -14,6 +14,8 @@ public interface ReservationService {
 
     boolean isAvailable(UUID campsiteId, Instant start, Instant end);
 
+    boolean isAvailable(UUID id, UUID campsiteId, Instant start, Instant end);
+
     Reservation save(Reservation reservation);
 
     Optional<Reservation> update(Reservation reservation);

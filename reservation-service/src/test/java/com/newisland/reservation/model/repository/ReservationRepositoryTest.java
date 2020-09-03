@@ -106,4 +106,26 @@ class ReservationRepositoryTest {
                 campsiteId,ReservationStatus.ACTIVE,bookingArrivalDate,bookingDepartureDate);
         assertEquals(1,count);
     }
+
+    @Test
+    public void testCountAvailabilityForUpdate(){
+        UUID campsiteId = UUID.randomUUID();
+        Instant createdOn = Instant.now().minus(2, ChronoUnit.DAYS);
+        Instant arrivalDate = createdOn.plus(2, ChronoUnit.DAYS);
+        Instant departureDate = arrivalDate.plus(3, ChronoUnit.DAYS);
+        Reservation reservation = Reservation.builder().
+                userId(UUID.randomUUID()).
+                arrivalDate(arrivalDate).
+                departureDate(departureDate).
+                createdOn(createdOn).
+                status(ReservationStatus.ACTIVE).
+                campsiteId(campsiteId).build();
+        reservationRepository.save(reservation);
+        Instant bookingArrivalDate = arrivalDate;
+        Instant bookingDepartureDate = departureDate;
+        Long count = reservationRepository.
+                countAvailabilityForExistingRecord(reservation.getId(),
+                    campsiteId,ReservationStatus.ACTIVE,bookingArrivalDate,bookingDepartureDate);
+        assertEquals(0,count);
+    }
 }

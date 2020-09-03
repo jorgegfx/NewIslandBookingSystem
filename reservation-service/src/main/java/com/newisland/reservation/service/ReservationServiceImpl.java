@@ -64,7 +64,12 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.countAvailability(campsiteId, ReservationStatus.ACTIVE, start, end) == 0;
     }
 
-    private ValidationResult validate(Instant now, Reservation reservation) {
+    @Override
+    public boolean isAvailable(UUID id, UUID campsiteId, Instant start, Instant end) {
+        return reservationRepository.countAvailabilityForExistingRecord(id,campsiteId, ReservationStatus.ACTIVE, start, end) == 0;
+    }
+
+    private ValidationResult validate(Instant now, Reservation reservation,Optional<Reservation> existingRecord) {
         long numberOfDaysToReserve = Duration.between(
                 reservation.getArrivalDate(),
                 reservation.getDepartureDate()).toDays();
@@ -82,15 +87,23 @@ public class ReservationServiceImpl implements ReservationService {
             return ValidationResult.AHEAD_MAX_RANGE_NON_VALID;
 
         //Reservation is not Double Booked
-        if (!isAvailable(reservation.getCampsiteId(),
-                reservation.getArrivalDate(),
-                reservation.getDepartureDate()))
-            return ValidationResult.ALREADY_BOOKED_NON_VALID;
+        if(existingRecord.isPresent()){
+            if (!isAvailable(existingRecord.get().getId(),
+                    reservation.getCampsiteId(),
+                    reservation.getArrivalDate(),
+                    reservation.getDepartureDate()))
+                return ValidationResult.ALREADY_BOOKED_NON_VALID;
+        }else{
+            if (!isAvailable(reservation.getCampsiteId(),
+                    reservation.getArrivalDate(),
+                    reservation.getDepartureDate()))
+                return ValidationResult.ALREADY_BOOKED_NON_VALID;
+        }
         return ValidationResult.VALID;
     }
 
-    private Reservation trySaveRecord(Instant now,Reservation reservation){
-        switch (validate(now, reservation)){
+    private Reservation trySaveRecord(Instant now,Reservation reservation, Optional<Reservation> existingRecord){
+        switch (validate(now, reservation,existingRecord)){
             case VALID: reservation.setStatus(ReservationStatus.ACTIVE);
                 break;
             case ALREADY_BOOKED_NON_VALID:
@@ -112,7 +125,7 @@ public class ReservationServiceImpl implements ReservationService {
     public Reservation save(Reservation reservation) {
         Instant now = Instant.now();
         reservation.setCreatedOn(now);
-        return trySaveRecord(now,reservation);
+        return trySaveRecord(now,reservation,Optional.empty());
     }
 
     @Override
@@ -122,7 +135,7 @@ public class ReservationServiceImpl implements ReservationService {
             reservation.setUserId(existentReservation.getUserId());
             reservation.setCreatedOn(existentReservation.getCreatedOn());
             reservation.setUpdatedOn(now);
-            return trySaveRecord(now,reservation);
+            return trySaveRecord(now,reservation,Optional.of(existentReservation));
         });
         if (res.isPresent() && res.get().getUpdatedOn() != null) {
             return res;

@@ -215,7 +215,8 @@ class ReservationServiceTest {
                 createdOn(createdOn).
                 campsiteId(campsiteId).build();
         when(reservationRepository.
-                countAvailability(
+                countAvailabilityForExistingRecord(
+                        reservation.getId(),
                         reservation.getCampsiteId(),
                         ReservationStatus.ACTIVE,
                         reservation.getArrivalDate(),
