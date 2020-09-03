@@ -34,3 +34,14 @@ date(s). Demonstrate with appropriate test cases that the system can gracefully 
 ## Component Diagram
 
 ![Component Diagram](NewIslandBooking.png)
+
+
+## Kafka Setup
+### Localhost Standalone
+https://kafka.apache.org/quickstart
+### Kubernetes
+https://strimzi.io/quickstarts
+### Create Topic for Reservation Commands (Create,Update,Cancel)
+bin/kafka-topics.sh --describe --topic reservation-commands --bootstrap-server localhost:9092
+### Create Topic for Reservation Events (Created,Updated,Cancelled)
+bin/kafka-topics.sh --describe --topic reservation-events --bootstrap-server localhost:9092

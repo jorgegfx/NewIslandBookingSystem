@@ -131,11 +131,11 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public void cancel(UUID id) {
-        this.findById(id).ifPresent(existentReservation -> {
+    public Optional<Reservation> cancel(UUID id) {
+        return this.findById(id).map(existentReservation -> {
             existentReservation.setUpdatedOn(Instant.now());
             existentReservation.setStatus(ReservationStatus.CANCELLED);
-            reservationRepository.save(existentReservation);
+            return reservationRepository.save(existentReservation);
         });
     }
 }

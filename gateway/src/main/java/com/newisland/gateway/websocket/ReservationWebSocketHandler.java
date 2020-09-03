@@ -21,7 +21,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
+/**
+ * ReservationWebSocketHandler this is a web socket handler that has the responsibility
+ * of sending the commands to the command topic and listen the events from those commands
+ * NOTE is might be required to implement a retention policy on the events since
+ * they might not be consume by the web socket or other system
+ */
 @Slf4j
 @Component
 public class ReservationWebSocketHandler extends TextWebSocketHandler {
@@ -96,7 +101,7 @@ public class ReservationWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    @KafkaListener(topics = "${reservation-events-topic}", groupId = "ReservationEventConsumerGroup")
+    @KafkaListener(topics = "${reservation-events-topic}", groupId = "#{reservation.events.consumer.group}")
     public void consume(ConsumerRecord<String, ReservationEventOuterClass.ReservationEvent> message){
         ReservationEventOuterClass.ReservationEvent event = message.value();
         switch (event.getActionType()){
@@ -105,18 +110,26 @@ public class ReservationWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    public void submitCreate(CreateReservationDto createReservationDto, WebSocketSession session){
+    public void submitCreate(CreateReservationRequest createReservationRequest, WebSocketSession session){
         UUID referenceId = UUID.randomUUID();
-        kafkaTemplate.send(reservationCommandsTopic, createReservationDto.getCampsiteId(),
-                createReservationDto.toProtobuf(referenceId));
+        kafkaTemplate.send(reservationCommandsTopic, createReservationRequest.getCampsiteId(),
+                createReservationRequest.toProtobuf(referenceId));
         sessionMap.put(referenceId,session);
         correlationSessionMap.put(session.getId(),referenceId);
     }
 
-    public void submitUpdate(UpdateReservationDto updateReservationDto, WebSocketSession session){
-        kafkaTemplate.send(reservationCommandsTopic, updateReservationDto.getCampsiteId(),
-                updateReservationDto.toProtobuf());
-        UUID id = UUID.fromString(updateReservationDto.getId());
+    public void submitUpdate(UpdateReservationRequest updateReservationRequest, WebSocketSession session){
+        kafkaTemplate.send(reservationCommandsTopic, updateReservationRequest.getCampsiteId(),
+                updateReservationRequest.toProtobuf());
+        UUID id = UUID.fromString(updateReservationRequest.getId());
+        sessionMap.put(id,session);
+        correlationSessionMap.put(session.getId(),id);
+    }
+
+    public void submitCancel(CancelReservationRequest cancelReservationRequest, WebSocketSession session){
+        kafkaTemplate.send(reservationCommandsTopic, cancelReservationRequest.getCampsiteId(),
+                cancelReservationRequest.toProtobuf());
+        UUID id = UUID.fromString(cancelReservationRequest.getId());
         sessionMap.put(id,session);
         correlationSessionMap.put(session.getId(),id);
     }
@@ -125,12 +138,10 @@ public class ReservationWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         try {
             String json = message.getPayload();
-            ReservationRequest reservationRequest = objectMapper.readValue(json, CreateReservationDto.class);
-            if(reservationRequest instanceof CreateReservationDto){
-                submitCreate((CreateReservationDto) reservationRequest,session);
-            }
-            if(reservationRequest instanceof UpdateReservationDto){
-                submitUpdate((UpdateReservationDto) reservationRequest,session);
+            ReservationRequest reservationRequest = objectMapper.readValue(json, CreateReservationRequest.class);
+            switch (reservationRequest.getType()){
+                case CREATE:submitCreate((CreateReservationRequest) reservationRequest,session);break;
+                case UPDATE:submitUpdate((UpdateReservationRequest) reservationRequest,session);break;
             }
         }catch (Exception ex){
             log.error("Error",ex);

@@ -8,31 +8,34 @@ import lombok.EqualsAndHashCode;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import static com.newisland.common.messages.command.ReservationCommandOuterClass.ReservationCommand.ActionType.UPDATE;
+import static com.newisland.common.messages.command.ReservationCommandOuterClass.ReservationCommand.ActionType.CREATE;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
-public class UpdateReservationDto extends ReservationRequest{
-    private String id;
+public class CreateReservationRequest extends ReservationRequest{
+    private String userFullName;
+    private String userEmail;
     private String campsiteId;
     private ZonedDateTime arrivalDate;
     private ZonedDateTime departureDate;
 
-    public ReservationCommandOuterClass.ReservationCommand toProtobuf(String id){
-        ReservationCommandOuterClass.UpdateReservationCommand update =
-                ReservationCommandOuterClass.UpdateReservationCommand.newBuilder().
-                        setId(id).
+    public CreateReservationRequest(){
+        this.type = RequestType.CREATE;
+    }
+
+    public ReservationCommandOuterClass.ReservationCommand toProtobuf(UUID referenceId){
+        ReservationCommandOuterClass.CreateReservationCommand create =
+                ReservationCommandOuterClass.CreateReservationCommand.newBuilder().
+                        setReferenceId(referenceId.toString()).
                         setCampsiteId(this.getCampsiteId()).
+                        setUserEmail(this.getUserEmail()).
+                        setUserFullName(this.getUserFullName()).
                         setArrivalDate(TimeUtils.convertTimestamp(this.getArrivalDate())).
                         setDepartureDate(TimeUtils.convertTimestamp(this.getDepartureDate())).
                         build();
         ReservationCommandOuterClass.ReservationCommand cmd =
                 ReservationCommandOuterClass.ReservationCommand.newBuilder().
-                        setActionType(UPDATE).setUpdate(update).build();
+                        setActionType(CREATE).setCreate(create).build();
         return cmd;
-    }
-
-    public ReservationCommandOuterClass.ReservationCommand toProtobuf(){
-        return toProtobuf(this.id);
     }
 }

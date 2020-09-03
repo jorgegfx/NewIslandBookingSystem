@@ -15,6 +15,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.newisland.common.messages.event.ReservationEventOuterClass.ReservationEvent.ActionType.CREATED;
@@ -77,17 +78,48 @@ public class ReservationCommandListener {
     }
 
     private void onUpdate(ReservationCommandOuterClass.UpdateReservationCommand update){
-        Reservation reservation = Reservation.builder().
-                id(UUID.fromString(update.getId())).
-                campsiteId(UUID.fromString(update.getCampsiteId())).
-                arrivalDate(TimeUtils.convertToInstant(update.getArrivalDate())).
-                departureDate(TimeUtils.convertToInstant(update.getDepartureDate())).
-                build();
-        reservationService.update(reservation);
+        ReservationEventOuterClass.ReservationUpdatedEvent updatedEvent =
+                ReservationEventOuterClass.ReservationUpdatedEvent.newBuilder().
+                        setId(update.getId()).build();
+        try {
+            Reservation reservation = Reservation.builder().
+                    id(UUID.fromString(update.getId())).
+                    campsiteId(UUID.fromString(update.getCampsiteId())).
+                    arrivalDate(TimeUtils.convertToInstant(update.getArrivalDate())).
+                    departureDate(TimeUtils.convertToInstant(update.getDepartureDate())).
+                    build();
+            reservationService.update(reservation);
+            ReservationEventOuterClass.ReservationEvent event =
+                    ReservationEventOuterClass.ReservationEvent.newBuilder().
+                            setActionType(CREATED).
+                            setResultType(SUCCESS).
+                            setUpdated(updatedEvent).build();
+            kafkaTemplate.send(reservationEventsTopic, update.getCampsiteId(), event);
+        }catch (ReservationException ex){
+            ReservationEventOuterClass.ReservationEvent event =
+                    ReservationEventOuterClass.ReservationEvent.newBuilder().
+                            setActionType(CREATED).
+                            setResultType(ERROR).
+                            setErrorMessage(ex.getMessage()).
+                            setUpdated(updatedEvent).build();
+            kafkaTemplate.send(reservationEventsTopic,update.getCampsiteId(),event);
+            log.error("Error",ex);
+        }
     }
 
     private void onCancel(ReservationCommandOuterClass.CancelReservationCommand cancel){
-        reservationService.cancel(UUID.fromString(cancel.getId()));
+        ReservationEventOuterClass.ReservationCancelledEvent cancelledEvent =
+                ReservationEventOuterClass.ReservationCancelledEvent.newBuilder().
+                        setId(cancel.getId()).build();
+        Optional<Reservation> res = reservationService.cancel(UUID.fromString(cancel.getId()));
+        res.ifPresent(reservation -> {
+            ReservationEventOuterClass.ReservationEvent event =
+                    ReservationEventOuterClass.ReservationEvent.newBuilder().
+                            setActionType(CREATED).
+                            setResultType(SUCCESS).
+                            setCancelled(cancelledEvent).build();
+            kafkaTemplate.send(reservationEventsTopic,reservation.getCampsiteId().toString(),event);
+        });
     }
 
     @KafkaListener(topics = "${reservation-commands-topic}", groupId = "ReservationCommandsConsumerGroup")
@@ -100,10 +132,6 @@ public class ReservationCommandListener {
                 case UPDATE: this.onUpdate(cmd.getUpdate());break;
                 case CANCEL: this.onCancel(cmd.getCancel());
             }
-
-        }catch (ReservationException ex){
-            log.error(String.format("Error processing %s ...",cmd),ex);
-            //Error handling on a error topic or other mechanism
         }catch (Exception ex){
             log.error("Error processing message ...",ex);
             //Error handling on a error topic or other mechanism

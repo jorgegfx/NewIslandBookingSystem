@@ -8,8 +8,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = CreateReservationDto.class, name = "create"),
-        @JsonSubTypes.Type(value = UpdateReservationDto.class, name = "update")
+        @JsonSubTypes.Type(value = CreateReservationRequest.class, name = "create"),
+        @JsonSubTypes.Type(value = UpdateReservationRequest.class, name = "update")
 })
 public abstract class ReservationRequest {
+
+    protected RequestType type;
+
+    public RequestType getType() {
+        return type;
+    }
 }

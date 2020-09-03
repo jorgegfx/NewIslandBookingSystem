@@ -1,9 +1,10 @@
 package com.newisland.gateway.controller;
 
 import com.newisland.common.messages.command.ReservationCommandOuterClass;
-import com.newisland.gateway.dto.CreateReservationDto;
+import com.newisland.gateway.dto.CancelReservationRequest;
+import com.newisland.gateway.dto.CreateReservationRequest;
 import com.newisland.gateway.dto.ReservationResponse;
-import com.newisland.gateway.dto.UpdateReservationDto;
+import com.newisland.gateway.dto.UpdateReservationRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,9 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 import static com.newisland.common.messages.command.ReservationCommandOuterClass.ReservationCommand.ActionType.*;
+/**
+ * Fire and forget controller in the case that websockets are not enabled
+ */
 @Slf4j
 @RestController
 public class ReservationCommandController {
@@ -28,13 +32,10 @@ public class ReservationCommandController {
     @ResponseStatus(code = HttpStatus.OK)
     public Mono<Void> cancelReservation(@PathVariable String campsiteId, @PathVariable String id){
         try {
-            ReservationCommandOuterClass.CancelReservationCommand cancel =
-                    ReservationCommandOuterClass.CancelReservationCommand.newBuilder().
-                            setId(id).build();
-            ReservationCommandOuterClass.ReservationCommand cmd =
-                    ReservationCommandOuterClass.ReservationCommand.newBuilder().
-                            setActionType(CANCEL).setCancel(cancel).build();
-            kafkaTemplate.send(reservationTopic, campsiteId, cmd);
+            CancelReservationRequest cancelReservationRequest = new CancelReservationRequest();
+            cancelReservationRequest.setId(id);
+            cancelReservationRequest.setCampsiteId(campsiteId);
+            kafkaTemplate.send(reservationTopic, campsiteId, cancelReservationRequest.toProtobuf());
         }catch (Exception ex){
             log.error("Error canceling reservation",ex);
         }
@@ -43,10 +44,10 @@ public class ReservationCommandController {
 
     @PatchMapping("/updateReservation/{id}")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public Mono<Void> updateReservation(@PathVariable String id,@RequestBody UpdateReservationDto updateReservationDto){
+    public Mono<Void> updateReservation(@PathVariable String id,@RequestBody UpdateReservationRequest updateReservationRequest){
         try {
-            kafkaTemplate.send(reservationTopic, updateReservationDto.getCampsiteId(),
-                    updateReservationDto.toProtobuf(id));
+            kafkaTemplate.send(reservationTopic, updateReservationRequest.getCampsiteId(),
+                    updateReservationRequest.toProtobuf(id));
         }catch (Exception ex){
             log.error("Error updating reservation",ex);
         }
@@ -55,11 +56,11 @@ public class ReservationCommandController {
 
     @PostMapping("/createReservation")
     @ResponseStatus(code = HttpStatus.CREATED)
-    public Mono<ReservationResponse> createReservation(@RequestBody CreateReservationDto createReservationDto) {
+    public Mono<ReservationResponse> createReservation(@RequestBody CreateReservationRequest createReservationRequest) {
         try {
             UUID referenceId = UUID.randomUUID();
-            kafkaTemplate.send(reservationTopic, createReservationDto.getCampsiteId(),
-                    createReservationDto.toProtobuf(referenceId));
+            kafkaTemplate.send(reservationTopic, createReservationRequest.getCampsiteId(),
+                    createReservationRequest.toProtobuf(referenceId));
             return Mono.just(ReservationResponse.builder().referenceId(referenceId).build());
         }catch (Exception ex){
             String errorMessage = "Error creating reservation";

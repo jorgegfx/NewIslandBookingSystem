@@ -11,6 +11,8 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 /**
  * Gateway Application
  */
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class GatewayApplication {
     public static void main(String[] args) {
+        //Guarantee that all consumers will receive all message putting then in different consumer groups
+        System.setProperty("reservation.events.consumer.group", UUID.randomUUID().toString());
         SpringApplication.run(GatewayApplication.class, args);
     }
 

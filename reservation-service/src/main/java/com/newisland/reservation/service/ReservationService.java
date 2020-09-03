@@ -18,5 +18,5 @@ public interface ReservationService {
 
     Optional<Reservation> update(Reservation reservation);
 
-    void cancel(UUID id);
+    Optional<Reservation> cancel(UUID id);
 }

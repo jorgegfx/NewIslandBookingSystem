@@ -34,4 +34,5 @@ message UpdateReservationCommand{
 
 message CancelReservationCommand{
   string id = 1;
+  string campsiteId = 2;
 }
