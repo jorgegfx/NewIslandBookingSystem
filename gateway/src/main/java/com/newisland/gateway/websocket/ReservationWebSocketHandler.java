@@ -1,6 +1,9 @@
 package com.newisland.gateway.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.newisland.common.messages.command.ReservationCommandOuterClass;
 import com.newisland.common.messages.event.ReservationEventOuterClass;
 import com.newisland.gateway.dto.*;
@@ -44,7 +47,7 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
     @Value("${reservation-response-timeout:5}")
     private int timeOutMinutes;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper = createObjectMapper();
 
     private Map<UUID, CountDownLatch> createRequestLocksMap = new ConcurrentHashMap<>();
     private Map<UUID, CountDownLatch> updateRequestLocksMap = new ConcurrentHashMap<>();
@@ -53,6 +56,15 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
     private Map<UUID, String> createResponseMap = new ConcurrentHashMap<>();
     private Map<UUID, String> updateResponseMap = new ConcurrentHashMap<>();
     private Map<UUID, String> cancelResponseMap = new ConcurrentHashMap<>();
+
+    private ObjectMapper createObjectMapper(){
+        ObjectMapper mapper =
+                new ObjectMapper()
+                        .registerModule(new ParameterNamesModule())
+                        .registerModule(new Jdk8Module())
+                        .registerModule(new JavaTimeModule());
+        return mapper;
+    }
 
     public void onCreate(ReservationEventOuterClass.ReservationEvent event){
         ReservationEventOuterClass.ReservationCreatedEvent reservationCreatedEvent = event.getCreated();
@@ -76,8 +88,11 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
             try {
                 String json = objectMapper.writeValueAsString(response);
                 UUID refId = UUID.fromString(reservationCreatedEvent.getReferenceId());
-                createResponseMap.put(refId,json);
-                createRequestLocksMap.get(refId).countDown();
+                if(createRequestLocksMap.containsKey(refId)) {
+                    createResponseMap.put(refId,json);
+                    createRequestLocksMap.get(refId).countDown();
+                    createRequestLocksMap.remove(refId);
+                }
             }catch (Exception ex){
                 log.error("Error",ex);
             }
@@ -106,8 +121,11 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
             try {
                 String json = objectMapper.writeValueAsString(response);
                 UUID refId = UUID.fromString(reservationUpdatedEvent.getReferenceId());
-                updateResponseMap.put(refId,json);
-                updateRequestLocksMap.get(refId).countDown();
+                if(updateRequestLocksMap.containsKey(refId)) {
+                    updateResponseMap.put(refId,json);
+                    updateRequestLocksMap.get(refId).countDown();
+                    updateRequestLocksMap.remove(refId);
+                }
             } catch (Exception ex) {
                 log.error("Error", ex);
             }
@@ -136,8 +154,11 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
             try {
                 String json = objectMapper.writeValueAsString(response);
                 UUID refId = UUID.fromString(reservationCancelledEvent.getReferenceId());
-                cancelResponseMap.put(refId,json);
-                cancelRequestLocksMap.get(refId).countDown();
+                if(cancelRequestLocksMap.containsKey(refId)) {
+                    cancelResponseMap.put(refId,json);
+                    cancelRequestLocksMap.get(refId).countDown();
+                    cancelRequestLocksMap.remove(refId);
+                }
             } catch (Exception ex) {
                 log.error("Error", ex);
             }
@@ -179,22 +200,32 @@ public class ReservationWebSocketHandler implements WebSocketHandler {
         return referenceId;
     }
 
+    private WebSocketMessage createWebSocketMessage(UUID txId,
+                                                    WebSocketSession webSocketSession,
+                                                    Map<UUID,CountDownLatch> lockRequestMap,
+                                                    Map<UUID,String> responseMap) throws InterruptedException {
+        lockRequestMap.get(txId).await(timeOutMinutes, TimeUnit.MINUTES);
+        WebSocketMessage webSocketMessage = webSocketSession.textMessage(responseMap.get(txId));
+        responseMap.remove(txId);
+        return webSocketMessage;
+    }
+
     private WebSocketMessage onReceive(String payload,WebSocketSession webSocketSession){
         try {
             ReservationRequest reservationRequest = objectMapper.readValue(payload, CreateReservationRequest.class);
             switch (reservationRequest.getType()){
                 case CREATE:
                     UUID createTxId = submitCreate((CreateReservationRequest) reservationRequest);
-                    createRequestLocksMap.get(createTxId).await(timeOutMinutes, TimeUnit.MINUTES);
-                    return webSocketSession.textMessage(createResponseMap.get(createTxId));
+                    return this.createWebSocketMessage(
+                            createTxId,webSocketSession,createRequestLocksMap,createResponseMap);
                 case UPDATE:
                     UUID updateTxId = submitUpdate((UpdateReservationRequest) reservationRequest);
-                    createRequestLocksMap.get(updateTxId).await(timeOutMinutes, TimeUnit.MINUTES);
-                    return webSocketSession.textMessage(createResponseMap.get(updateTxId));
+                    return this.createWebSocketMessage(
+                            updateTxId,webSocketSession,updateRequestLocksMap,updateResponseMap);
                 case CANCEL:
                     UUID cancelTxId = submitCancel((CancelReservationRequest) reservationRequest);
-                    createRequestLocksMap.get(cancelTxId).await(timeOutMinutes, TimeUnit.MINUTES);
-                    return webSocketSession.textMessage(createResponseMap.get(cancelTxId));
+                    return this.createWebSocketMessage(
+                            cancelTxId,webSocketSession,cancelRequestLocksMap,cancelResponseMap);
             }
         }catch (Exception ex){
             log.error("Error",ex);

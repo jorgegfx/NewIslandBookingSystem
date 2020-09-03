@@ -25,10 +25,6 @@ public class Reservation {
 
     @Type(type = "uuid-char")
     @Column(length = 36, nullable = false)
-    private UUID referenceId;
-
-    @Type(type = "uuid-char")
-    @Column(length = 36, nullable = false)
     private UUID userId;
 
     @Type(type = "uuid-char")

@@ -43,7 +43,6 @@ class ReservationServiceTest {
         Instant departureDate = arrivalDate.plus(5, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).
@@ -64,7 +63,6 @@ class ReservationServiceTest {
         Instant departureDate = arrivalDate.plus(3, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).
@@ -77,7 +75,6 @@ class ReservationServiceTest {
                         reservation.getDepartureDate())).thenReturn(0L);
         Reservation expected = Reservation.builder().
                 id(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 userId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
@@ -101,7 +98,6 @@ class ReservationServiceTest {
         Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).
@@ -123,7 +119,6 @@ class ReservationServiceTest {
         Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).
@@ -136,7 +131,6 @@ class ReservationServiceTest {
                         reservation.getDepartureDate())).thenReturn(0L);
         Reservation expected = Reservation.builder().
                 id(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 userId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
@@ -161,7 +155,6 @@ class ReservationServiceTest {
         Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).
@@ -183,7 +176,6 @@ class ReservationServiceTest {
         Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 userId(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
                 createdOn(createdOn).
@@ -217,7 +209,6 @@ class ReservationServiceTest {
         Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 id(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 userId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).
@@ -250,7 +241,6 @@ class ReservationServiceTest {
         Instant departureDate = arrivalDate.plus(2, ChronoUnit.DAYS);
         Reservation reservation = Reservation.builder().
                 id(UUID.randomUUID()).
-                referenceId(UUID.randomUUID()).
                 userId(UUID.randomUUID()).
                 arrivalDate(arrivalDate).
                 departureDate(departureDate).

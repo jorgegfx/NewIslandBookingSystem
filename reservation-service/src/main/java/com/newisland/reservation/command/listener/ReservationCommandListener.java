@@ -50,7 +50,6 @@ public class ReservationCommandListener {
         Reservation reservation = Reservation.builder().
                 campsiteId(UUID.fromString(create.getCampsiteId())).
                 userId(userId).
-                referenceId(UUID.fromString(create.getReferenceId())).
                 arrivalDate(TimeUtils.convertToInstant(create.getArrivalDate())).
                 departureDate(TimeUtils.convertToInstant(create.getDepartureDate())).
                 build();
@@ -80,7 +79,9 @@ public class ReservationCommandListener {
     private void onUpdate(ReservationCommandOuterClass.UpdateReservationCommand update){
         ReservationEventOuterClass.ReservationUpdatedEvent updatedEvent =
                 ReservationEventOuterClass.ReservationUpdatedEvent.newBuilder().
-                        setId(update.getId()).build();
+                        setId(update.getId()).
+                        setReferenceId(update.getReferenceId()).
+                        build();
         try {
             Reservation reservation = Reservation.builder().
                     id(UUID.fromString(update.getId())).
@@ -110,7 +111,9 @@ public class ReservationCommandListener {
     private void onCancel(ReservationCommandOuterClass.CancelReservationCommand cancel){
         ReservationEventOuterClass.ReservationCancelledEvent cancelledEvent =
                 ReservationEventOuterClass.ReservationCancelledEvent.newBuilder().
-                        setId(cancel.getId()).build();
+                        setId(cancel.getId()).
+                        setReferenceId(cancel.getReferenceId()).
+                        build();
         Optional<Reservation> res = reservationService.cancel(UUID.fromString(cancel.getId()));
         res.ifPresent(reservation -> {
             ReservationEventOuterClass.ReservationEvent event =

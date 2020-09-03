@@ -1,10 +1,7 @@
 package com.newisland.gateway.controller;
 
 import com.newisland.common.messages.command.ReservationCommandOuterClass;
-import com.newisland.gateway.dto.CancelReservationRequest;
-import com.newisland.gateway.dto.CreateReservationRequest;
-import com.newisland.gateway.dto.ReservationResponse;
-import com.newisland.gateway.dto.UpdateReservationRequest;
+import com.newisland.gateway.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,7 +57,9 @@ public class ReservationCommandController {
             UUID referenceId = UUID.randomUUID();
             kafkaTemplate.send(reservationTopic, createReservationRequest.getCampsiteId(),
                     createReservationRequest.toProtobuf(referenceId));
-            return Mono.just(ReservationResponse.builder().referenceId(referenceId).build());
+            return Mono.just(ReservationResponse.builder().
+                    referenceId(referenceId).
+                    status(ReservationStatus.PENDING).build());
         }catch (Exception ex){
             String errorMessage = "Error creating reservation";
             log.error(errorMessage,ex);
