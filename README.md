@@ -257,7 +257,7 @@ modification/cancellation of an existing reservation
 4. Due to the popularity of the island, there is a high likelihood of multiple users attempting to reserve the campsite for the same/overlapping
 date(s). Demonstrate with appropriate test cases that the system can gracefully handle concurrent requests to reserve the campsite.
 
-The system has been implemented using kafka as message bus 
+    * The system has been implemented using kafka as message bus 
 and the selected key for the message will be campsite id therefore all 
 messages that belong to the same key will be processed in order, 
 the database can be use as a distributed locking control but will 
@@ -266,11 +266,11 @@ as another measure the system checks if there will be any double booking
 
 5. Provide appropriate error messages to the caller to indicate the error cases.
 
-The Web socket replies with an error message and a status as a response of any request
+    * The Web socket replies with an error message and a status as a response of any request
 
 6. In general, the system should be able to handle large volume of requests for getting the campsite availability.
 
-On memory cache has been implemented to help the system and database performance, 
+    * On memory cache has been implemented to help the system and database performance, 
 also partitioning would help if historic information is kept.   
 
 7. There are no restrictions on how reservations are stored as as long as system constraints are not violated.
