@@ -72,6 +72,7 @@ has a separate database I have chosen postgres because
 the schema is clearly defined but we don need ACID capabilities 
 (since it uses kafka topics partitioning to solve concurrency booking issues) 
 that's the reason Cassandra could be a great choice too
+
 ![Component Diagram](NewIslandBookingClass.png)
 
 ## System resource costs calculations
