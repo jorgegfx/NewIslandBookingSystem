@@ -220,9 +220,9 @@ modification/cancellation of an existing reservation
                     "departureDate":"2020-10-02T17:52:46+00:00"
                 }
                 ```
-                
-            The response will give a correlationId that can be use to query the reservation details or error using 
-                    /GET {{gateway-url}}/reservation/status/{{correlationId}}        
+                The response will give a correlationId that can be use to query the reservation details or error using 
+                                    /GET {{gateway-url}}/reservation/status/{{correlationId}} 
+                   
                     
 * Cancel:
     * Web Socket:
@@ -258,11 +258,11 @@ modification/cancellation of an existing reservation
 date(s). Demonstrate with appropriate test cases that the system can gracefully handle concurrent requests to reserve the campsite.
 
     * The system has been implemented using kafka as message bus 
-and the selected key for the message will be campsite id therefore all 
-messages that belong to the same key will be processed in order, 
-the database can be use as a distributed locking control but will 
-impact greatly since kafka can be easier scale than a rdbms database, 
-as another measure the system checks if there will be any double booking   
+    and the selected key for the message will be campsite id therefore all 
+    messages that belong to the same key will be processed in order, 
+    the database can be use as a distributed locking control but will 
+    impact greatly since kafka can be easier scale than a rdbms database, 
+    as another measure the system checks if there will be any double booking   
 
 5. Provide appropriate error messages to the caller to indicate the error cases.
 
@@ -271,7 +271,7 @@ as another measure the system checks if there will be any double booking
 6. In general, the system should be able to handle large volume of requests for getting the campsite availability.
 
     * On memory cache has been implemented to help the system and database performance, 
-also partitioning would help if historic information is kept.   
+    also partitioning would help if historic information is kept.   
 
 7. There are no restrictions on how reservations are stored as as long as system constraints are not violated.
 
